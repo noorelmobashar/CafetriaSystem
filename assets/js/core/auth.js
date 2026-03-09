@@ -25,13 +25,26 @@ export function ensureRole(role) {
 }
 
 export function loginWithCredentials(email, password, role) {
-  const user = state.data.users.find(
-    (entry) => entry.email.toLowerCase() === email.toLowerCase() && entry.password === password && entry.role === role
+  const normalizedEmail = email.trim().toLowerCase();
+  const normalizedPassword = password.trim();
+
+  let user = state.data.users.find(
+    (entry) =>
+      entry.email.toLowerCase() === normalizedEmail &&
+      entry.password === normalizedPassword &&
+      entry.role === role
   );
+
+  if (!user) {
+    user = state.data.users.find(
+      (entry) => entry.email.toLowerCase() === normalizedEmail && entry.password === normalizedPassword
+    );
+  }
 
   if (!user) return null;
 
   state.session = { userId: user.id, role: user.role };
+  state.loginRole = user.role;
   if (user.role === 'customer') {
     state.customerCart.room = state.customerCart.room || user.roomNo;
   }

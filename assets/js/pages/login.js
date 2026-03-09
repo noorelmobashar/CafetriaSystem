@@ -22,14 +22,14 @@ roleButtons.forEach((button) => {
 });
 
 document.getElementById('forgot-password').onclick = () => {
-  showToast('Password recovery flow can be connected to your backend API.', 'warning');
+  showToast('Please contact the cafeteria administration desk to reset your password.', 'warning');
 };
 
 document.getElementById('login-form').onsubmit = (event) => {
   event.preventDefault();
   const user = loginWithCredentials(emailInput.value.trim(), passwordInput.value.trim(), state.loginRole);
   if (!user) {
-    showToast('Invalid credentials for the selected role.', 'danger');
+    showToast('The email or password is incorrect. Please try again.', 'danger');
     return;
   }
   showToast(`Welcome back, ${user.name}.`, 'success');
