@@ -1,4 +1,4 @@
-export const STORAGE_KEY = 'cafetria-system-v2';
+export const STORAGE_KEY = 'cafetria-system-v3';
 
 export const statusMeta = {
   incoming: { label: 'Incoming', className: 'status-incoming' },
@@ -7,14 +7,6 @@ export const statusMeta = {
   done: { label: 'Done', className: 'status-done' },
   canceled: { label: 'Canceled', className: 'bg-slate-200 text-slate-700' },
 };
-
-export const adminSections = [
-  { id: 'home', label: 'Home' },
-  { id: 'products', label: 'Products' },
-  { id: 'users', label: 'Users' },
-  { id: 'manual-order', label: 'Manual Order' },
-  { id: 'checks', label: 'Checks' },
-];
 
 export function uid(prefix) {
   return `${prefix}-${Math.random().toString(36).slice(2, 10)}-${Date.now().toString(36)}`;

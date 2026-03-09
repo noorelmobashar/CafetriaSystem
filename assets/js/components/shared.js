@@ -1,5 +1,4 @@
 let modalState = {
-  config: null,
   fileData: null,
 };
 
@@ -42,14 +41,11 @@ export function tableShell(head, body) {
 export function bindModalShell() {
   const overlay = document.getElementById('modal-overlay');
   const closeButton = document.getElementById('close-modal-btn');
-
   if (!overlay || !closeButton) return;
 
   closeButton.onclick = closeModal;
   overlay.onclick = (event) => {
-    if (event.target === overlay) {
-      closeModal();
-    }
+    if (event.target === overlay) closeModal();
   };
 }
 
@@ -67,18 +63,12 @@ export function getModalFileData() {
 }
 
 export function openModal(config) {
-  modalState = {
-    config,
-    fileData: null,
-  };
+  modalState = { fileData: null };
 
   const overlay = document.getElementById('modal-overlay');
   const form = document.getElementById('modal-form');
-  const kicker = document.getElementById('modal-kicker');
-  const title = document.getElementById('modal-title');
-
-  kicker.textContent = config.kicker;
-  title.textContent = config.title;
+  document.getElementById('modal-kicker').textContent = config.kicker;
+  document.getElementById('modal-title').textContent = config.title;
   form.innerHTML = config.render();
   overlay.classList.remove('hidden');
   overlay.classList.add('flex');
@@ -100,11 +90,7 @@ export function openModal(config) {
 }
 
 export function closeModal() {
-  modalState = {
-    config: null,
-    fileData: null,
-  };
-
+  modalState = { fileData: null };
   const overlay = document.getElementById('modal-overlay');
   if (!overlay) return;
   overlay.classList.add('hidden');

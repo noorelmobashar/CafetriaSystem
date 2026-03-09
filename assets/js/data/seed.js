@@ -4,7 +4,7 @@ import {
   createIllustration,
   getDateDaysAgo,
   uid,
-} from '../utils.js';
+} from '../core/utils.js';
 
 export function seedData() {
   const products = [
