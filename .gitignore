@@ -1,0 +1,6 @@
+/vendor/
+/.env
+
+# OS / editor
+.DS_Store
+Thumbs.db

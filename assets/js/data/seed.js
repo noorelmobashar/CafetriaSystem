@@ -3,6 +3,7 @@ import {
   createEmptyCart,
   createIllustration,
   getDateDaysAgo,
+  ROOM_OPTIONS,
   uid,
 } from '../core/utils.js';
 
@@ -45,8 +46,6 @@ export function seedData() {
       name: 'Admin User',
       email: 'admin@company.com',
       password: 'admin123',
-      roomNo: 'Office Hub',
-      ext: '100',
       avatar: createAvatar('Admin User', '#0f172a', '#334155'),
     },
     {
@@ -55,8 +54,6 @@ export function seedData() {
       name: 'Alaa Hassan',
       email: 'employee@company.com',
       password: '123456',
-      roomNo: 'Room 201',
-      ext: '201',
       avatar: createAvatar('Alaa Hassan', '#2563eb', '#60a5fa'),
     },
     {
@@ -65,8 +62,6 @@ export function seedData() {
       name: 'Mariam Adel',
       email: 'mariam@company.com',
       password: '123456',
-      roomNo: 'Room 305',
-      ext: '305',
       avatar: createAvatar('Mariam Adel', '#f97316', '#fdba74'),
     },
     {
@@ -75,8 +70,6 @@ export function seedData() {
       name: 'Omar Samy',
       email: 'omar@company.com',
       password: '123456',
-      roomNo: 'Room 118',
-      ext: '118',
       avatar: createAvatar('Omar Samy', '#0f766e', '#6ee7b7'),
     },
   ];
@@ -89,7 +82,7 @@ export function seedData() {
       id: uid('order'),
       userId: alaa.id,
       userName: alaa.name,
-      room: alaa.roomNo,
+      room: ROOM_OPTIONS[2],
       note: '1 Tea Extra Sugar',
       createdAt: getDateDaysAgo(0),
       status: 'processing',
@@ -102,7 +95,7 @@ export function seedData() {
       id: uid('order'),
       userId: mariam.id,
       userName: mariam.name,
-      room: mariam.roomNo,
+      room: ROOM_OPTIONS[3],
       note: 'Deliver quickly please',
       createdAt: getDateDaysAgo(1),
       status: 'out-for-delivery',
@@ -115,7 +108,7 @@ export function seedData() {
       id: uid('order'),
       userId: omar.id,
       userName: omar.name,
-      room: omar.roomNo,
+      room: ROOM_OPTIONS[1],
       note: 'Manual bill assigned',
       createdAt: getDateDaysAgo(2),
       status: 'done',
@@ -131,7 +124,7 @@ export function seedData() {
       id: uid('order'),
       userId: alaa.id,
       userName: alaa.name,
-      room: alaa.roomNo,
+      room: ROOM_OPTIONS[2],
       note: 'No ice',
       createdAt: getDateDaysAgo(0),
       status: 'incoming',
@@ -146,7 +139,7 @@ export function seedData() {
     users,
     products,
     orders,
-    customerCart: createEmptyCart(users.find((user) => user.role === 'customer')?.roomNo || ''),
-    manualCart: { ...createEmptyCart(), userId: users.find((user) => user.role === 'customer')?.id || '' },
+    customerCart: createEmptyCart(ROOM_OPTIONS[0]),
+    manualCart: { ...createEmptyCart(ROOM_OPTIONS[0]), userId: users.find((user) => user.role === 'customer')?.id || '' },
   };
 }

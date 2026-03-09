@@ -7,7 +7,7 @@ $pageScript = 'assets/js/pages/admin-users.js';
 $currentPage = 'users';
 $headerBadge = 'Administrator';
 $headerTitle = 'Manage employees';
-$headerSubtitle = 'Maintain user profiles, rooms, extensions, and credentials in one place.';
+$headerSubtitle = 'Maintain user profiles, access credentials, and staff account details in one place.';
 require __DIR__ . '/../includes/page-start.php';
 ?>
 <main class="relative min-h-screen px-4 py-6 md:px-6 lg:px-8">

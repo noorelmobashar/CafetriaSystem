@@ -34,6 +34,10 @@ require __DIR__ . '/../includes/page-start.php';
               </div>
             </div>
           </div>
+          <div class="mt-4">
+            <label for="product-search" class="mb-2 block text-sm font-semibold text-slate-700">Search products</label>
+            <input id="product-search" type="search" placeholder="Search by product name or category" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-800 outline-none transition focus:border-brand-500 focus:ring-4 focus:ring-brand-100" />
+          </div>
           <div id="menu-grid" class="mt-6 grid gap-4 md:grid-cols-2"></div>
         </div>
       </div>

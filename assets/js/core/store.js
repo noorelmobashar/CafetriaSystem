@@ -1,5 +1,5 @@
 import { seedData } from '../data/seed.js';
-import { STORAGE_KEY, createEmptyCart, statusMeta, uid } from './utils.js';
+import { ROOM_OPTIONS, STORAGE_KEY, createEmptyCart, statusMeta, uid } from './utils.js';
 
 function buildInitialState() {
   const seeded = seedData();
@@ -28,10 +28,33 @@ function loadState() {
   if (!raw) return buildInitialState();
 
   const fallback = buildInitialState();
-  const parsed = JSON.parse(raw);
+  let parsed;
+
+  try {
+    parsed = JSON.parse(raw);
+  } catch {
+    return fallback;
+  }
+
+  const savedUsers = Array.isArray(parsed.data?.users) ? parsed.data.users.filter(Boolean) : [];
+  const ensuredUsers = savedUsers.length ? savedUsers : fallback.data.users;
+  const hasAdmin = ensuredUsers.some((user) => user.role === 'admin');
+  const hasCustomer = ensuredUsers.some((user) => user.role === 'customer');
+  const users = [
+    ...ensuredUsers,
+    ...fallback.data.users.filter((user) => {
+      if (user.role === 'admin' && !hasAdmin) return true;
+      if (user.role === 'customer' && !hasCustomer) return true;
+      return false;
+    }),
+  ];
 
   return {
-    data: parsed.data || fallback.data,
+    data: {
+      users,
+      products: Array.isArray(parsed.data?.products) && parsed.data.products.length ? parsed.data.products : fallback.data.products,
+      orders: Array.isArray(parsed.data?.orders) ? parsed.data.orders : fallback.data.orders,
+    },
     session: parsed.session || null,
     loginRole: parsed.loginRole || 'customer',
     customerCart: parsed.customerCart || fallback.customerCart,
@@ -71,7 +94,7 @@ export function getCustomerUsers() {
 }
 
 export function getRooms() {
-  return [...new Set(getCustomerUsers().map((user) => user.roomNo))].sort();
+  return ROOM_OPTIONS;
 }
 
 export function getProductById(productId) {
@@ -100,8 +123,7 @@ export function getCartTotal(cart) {
 }
 
 export function resetCustomerCart() {
-  const user = getCurrentUser();
-  state.customerCart = createEmptyCart(user?.roomNo || getRooms()[0] || '');
+  state.customerCart = createEmptyCart(getRooms()[0] || '');
 }
 
 export function customerStatus(order) {
@@ -116,7 +138,7 @@ export function createCustomerOrder(user) {
     id: uid('order'),
     userId: user.id,
     userName: user.name,
-    room: state.customerCart.room || user.roomNo,
+    room: state.customerCart.room || getRooms()[0],
     note: state.customerCart.note || '',
     createdAt: new Date().toISOString(),
     status: 'incoming',
@@ -203,7 +225,7 @@ export function saveUser(payload, userId = null) {
   if (existing) {
     state.data.users = state.data.users.map((user) => (user.id === userId ? { ...user, ...nextUser } : user));
     state.data.orders = state.data.orders.map((order) =>
-      order.userId === userId ? { ...order, userName: nextUser.name, room: nextUser.roomNo } : order
+      order.userId === userId ? { ...order, userName: nextUser.name } : order
     );
   } else {
     state.data.users.push(nextUser);
@@ -213,13 +235,35 @@ export function saveUser(payload, userId = null) {
   return nextUser;
 }
 
+export function deleteUser(userId) {
+  const user = state.data.users.find((entry) => entry.id === userId && entry.role === 'customer');
+  if (!user) return null;
+
+  state.data.users = state.data.users.filter((entry) => entry.id !== userId);
+
+  if (state.manualCart.userId === userId) {
+    state.manualCart.userId = getCustomerUsers()[0]?.id || '';
+  }
+
+  if (state.filters.checksUser === userId) {
+    state.filters.checksUser = 'all';
+  }
+
+  if (state.session?.userId === userId) {
+    state.session = null;
+  }
+
+  persistState();
+  return user;
+}
+
 export function createManualOrder(admin, user) {
   const items = getCartEntries(state.manualCart);
   const order = {
     id: uid('order'),
     userId: user.id,
     userName: user.name,
-    room: state.manualCart.room || user.roomNo,
+    room: state.manualCart.room || getRooms()[0],
     note: state.manualCart.note || '',
     createdAt: new Date().toISOString(),
     status: 'incoming',
@@ -231,7 +275,7 @@ export function createManualOrder(admin, user) {
 
   state.data.orders.unshift(order);
   state.manualCart = {
-    room: user.roomNo,
+    room: getRooms()[0],
     note: '',
     items: {},
     userId: user.id,

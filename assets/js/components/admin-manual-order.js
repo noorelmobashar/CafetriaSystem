@@ -2,6 +2,8 @@ import { createManualOrder, getCartEntries, getCartTotal, getCurrentUser, getCus
 import { currency } from '../core/utils.js';
 import { showToast } from './shared.js';
 
+let manualProductSearchQuery = '';
+
 export function initAdminManualOrderPage() {
   renderManualOrder();
   bindManualOrderActions();
@@ -12,6 +14,7 @@ function renderManualOrder() {
   const userSelect = document.getElementById('manual-user');
   const roomSelect = document.getElementById('manual-room');
   const noteInput = document.getElementById('manual-note');
+  const searchInput = document.getElementById('manual-product-search');
   const productsGrid = document.getElementById('manual-products-grid');
 
   if (!state.manualCart.userId) {
@@ -20,20 +23,26 @@ function renderManualOrder() {
 
   const selectedUser = users.find((user) => user.id === state.manualCart.userId) || users[0];
   if (!state.manualCart.room) {
-    state.manualCart.room = selectedUser?.roomNo || '';
+    state.manualCart.room = getRooms()[0] || '';
   }
 
   userSelect.innerHTML = users
     .map((user) => `<option value='${user.id}' ${user.id === state.manualCart.userId ? 'selected' : ''}>${user.name}</option>`)
     .join('');
 
-  roomSelect.innerHTML = [...new Set([selectedUser?.roomNo, ...getRooms()].filter(Boolean))]
+  roomSelect.innerHTML = getRooms()
     .map((room) => `<option value='${room}' ${room === state.manualCart.room ? 'selected' : ''}>${room}</option>`)
     .join('');
 
   noteInput.value = state.manualCart.note || '';
+  searchInput.value = manualProductSearchQuery;
 
   productsGrid.innerHTML = state.data.products
+    .filter((product) => {
+      const query = manualProductSearchQuery.trim().toLowerCase();
+      if (!query) return true;
+      return product.name.toLowerCase().includes(query) || product.category.toLowerCase().includes(query);
+    })
     .map((product) => {
       const item = state.manualCart.items[product.id] || { qty: 0, note: '' };
       return `
@@ -57,6 +66,10 @@ function renderManualOrder() {
     })
     .join('');
 
+  if (!productsGrid.innerHTML.trim()) {
+    productsGrid.innerHTML = "<div class='md:col-span-2 rounded-[1.75rem] border border-dashed border-slate-300 bg-slate-50 p-8 text-center text-sm text-slate-500'>No products match your search.</div>";
+  }
+
   const entries = getCartEntries(state.manualCart);
   document.getElementById('manual-cart-items').innerHTML = entries.length
     ? entries.map((item) => `
@@ -75,8 +88,7 @@ function bindManualOrderActions() {
 
   document.getElementById('manual-user').onchange = (event) => {
     state.manualCart.userId = event.target.value;
-    const nextUser = users.find((user) => user.id === event.target.value);
-    state.manualCart.room = nextUser?.roomNo || state.manualCart.room;
+    state.manualCart.room = state.manualCart.room || getRooms()[0] || '';
     persistState();
     renderManualOrder();
     bindManualOrderActions();
@@ -90,6 +102,12 @@ function bindManualOrderActions() {
   document.getElementById('manual-note').oninput = (event) => {
     state.manualCart.note = event.target.value;
     persistState();
+  };
+
+  document.getElementById('manual-product-search').oninput = (event) => {
+    manualProductSearchQuery = event.target.value;
+    renderManualOrder();
+    bindManualOrderActions();
   };
 
   document.getElementById('manual-products-grid').onclick = (event) => {

@@ -1,5 +1,5 @@
 import { deleteProduct, saveProduct, state } from '../core/store.js';
-import { createIllustration, currency } from '../core/utils.js';
+import { PRODUCT_CATEGORIES, createIllustration, currency } from '../core/utils.js';
 import { closeModal, getModalFileData, modalInput, openModal, showToast, tableShell } from './shared.js';
 
 export function initAdminProductsPage() {
@@ -53,7 +53,12 @@ function openProductModal(productId = null) {
       <div class='modal-grid cols-2'>
         ${modalInput('Product name', 'name', product?.name || '', 'text', 'Tea')}
         ${modalInput('Price (LE)', 'price', product?.price || '', 'number', '5')}
-        ${modalInput('Category', 'category', product?.category || '', 'text', 'Hot Drinks')}
+        <div>
+          <label class='mb-2 block text-sm font-semibold text-slate-700'>Category</label>
+          <select name='category' class='w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-brand-500 focus:ring-4 focus:ring-brand-100'>
+            ${PRODUCT_CATEGORIES.map((category) => `<option value='${category}' ${category === (product?.category || PRODUCT_CATEGORIES[0]) ? 'selected' : ''}>${category}</option>`).join('')}
+          </select>
+        </div>
         <div>
           <label class='mb-2 block text-sm font-semibold text-slate-700'>Picture upload</label>
           <input name='image' type='file' accept='image/*' class='w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-brand-500 focus:ring-4 focus:ring-brand-100' />

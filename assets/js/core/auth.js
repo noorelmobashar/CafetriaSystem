@@ -1,5 +1,5 @@
 import { appUrl } from './context.js';
-import { getCurrentUser, persistState, state } from './store.js';
+import { getCurrentUser, getRooms, persistState, state } from './store.js';
 import { routes, getHomeRoute } from './routes.js';
 
 export function redirect(path) {
@@ -46,7 +46,7 @@ export function loginWithCredentials(email, password, role) {
   state.session = { userId: user.id, role: user.role };
   state.loginRole = user.role;
   if (user.role === 'customer') {
-    state.customerCart.room = state.customerCart.room || user.roomNo;
+    state.customerCart.room = state.customerCart.room || getRooms()[0] || '';
   }
   persistState();
   return user;

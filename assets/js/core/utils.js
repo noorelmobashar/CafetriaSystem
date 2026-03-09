@@ -8,6 +8,10 @@ export const statusMeta = {
   canceled: { label: 'Canceled', className: 'bg-slate-200 text-slate-700' },
 };
 
+export const PRODUCT_CATEGORIES = ['Hot Drinks', 'Cold Drinks', 'Snacks', 'Desserts'];
+
+export const ROOM_OPTIONS = ['Room 101', 'Room 118', 'Room 201', 'Room 305', 'Meeting Room A', 'Office Hub'];
+
 export function uid(prefix) {
   return `${prefix}-${Math.random().toString(36).slice(2, 10)}-${Date.now().toString(36)}`;
 }

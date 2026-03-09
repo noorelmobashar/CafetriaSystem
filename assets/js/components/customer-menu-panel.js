@@ -2,6 +2,8 @@ import { createCustomerOrder, getCartEntries, getCartTotal, getCurrentUser, getR
 import { currency } from '../core/utils.js';
 import { showToast } from './shared.js';
 
+let productSearchQuery = '';
+
 export function initCustomerMenuPage() {
   const user = getCurrentUser();
   if (!user) return;
@@ -14,10 +16,11 @@ export function initCustomerMenuPage() {
 function renderMenu() {
   const roomSelect = document.getElementById('room-select');
   const globalNote = document.getElementById('global-note');
+  const productSearch = document.getElementById('product-search');
   const menuGrid = document.getElementById('menu-grid');
 
   if (!state.customerCart.room) {
-    state.customerCart.room = getCurrentUser()?.roomNo || getRooms()[0] || '';
+    state.customerCart.room = getRooms()[0] || '';
   }
 
   roomSelect.innerHTML = getRooms()
@@ -25,8 +28,14 @@ function renderMenu() {
     .join('');
 
   globalNote.value = state.customerCart.note || '';
+  productSearch.value = productSearchQuery;
 
   menuGrid.innerHTML = state.data.products
+    .filter((product) => {
+      const query = productSearchQuery.trim().toLowerCase();
+      if (!query) return true;
+      return product.name.toLowerCase().includes(query) || product.category.toLowerCase().includes(query);
+    })
     .map((product) => {
       const item = state.customerCart.items[product.id] || { qty: 0, note: '' };
       return `
@@ -59,6 +68,10 @@ function renderMenu() {
       `;
     })
     .join('');
+
+  if (!menuGrid.innerHTML.trim()) {
+    menuGrid.innerHTML = "<div class='md:col-span-2 rounded-[1.75rem] border border-dashed border-slate-300 bg-slate-50 p-8 text-center text-sm text-slate-500'>No products match your search.</div>";
+  }
 }
 
 function renderSummary(user) {
@@ -110,6 +123,12 @@ function bindActions(user) {
   document.getElementById('global-note').oninput = (event) => {
     state.customerCart.note = event.target.value;
     persistState();
+  };
+
+  document.getElementById('product-search').oninput = (event) => {
+    productSearchQuery = event.target.value;
+    renderMenu();
+    bindActions(user);
   };
 
   document.getElementById('menu-grid').onclick = (event) => {
