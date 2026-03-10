@@ -1,4 +1,9 @@
 <?php
+session_start();
+if (isset($_SESSION['user_id'])) {
+    header('Location: ' . ($_SESSION['user_role'] === 'admin' ? 'admin/index.php' : 'customer/menu.php'));
+    exit;
+}
 $pageTitle = 'Cafetria System | Login';
 $basePath = '.';
 $pageKey = 'login';
@@ -48,34 +53,45 @@ require __DIR__ . '/includes/page-start.php';
         <div class="rounded-2xl bg-slate-100 px-3 py-2 text-xs font-semibold text-slate-500">Authorized Access</div>
       </div>
 
-      <form id="login-form" class="space-y-5">
-        <div>
-          <label for="email" class="mb-2 block text-sm font-semibold text-slate-700">Email</label>
-          <input id="email" type="email" required placeholder="employee@company.com" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3.5 text-slate-900 outline-none transition focus:border-brand-500 focus:ring-4 focus:ring-brand-100" />
-        </div>
-        <div>
-          <div class="mb-2 flex items-center justify-between">
-            <label for="password" class="block text-sm font-semibold text-slate-700">Password</label>
-            <button type="button" id="forgot-password" class="text-sm font-medium text-brand-600 transition hover:text-brand-700">Forget Password?</button>
-          </div>
-          <input id="password" type="password" required placeholder="••••••••" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3.5 text-slate-900 outline-none transition focus:border-brand-500 focus:ring-4 focus:ring-brand-100" />
-        </div>
-        <div>
-          <p class="mb-3 text-sm font-semibold text-slate-700">Login as</p>
-          <div class="grid grid-cols-2 gap-3">
-            <button type="button" data-role="customer" class="role-card rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-left transition">
-              <span class="block text-sm font-semibold">Customer</span>
-              <span class="mt-1 block text-xs text-slate-500">Employees placing orders</span>
-            </button>
-            <button type="button" data-role="admin" class="role-card rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-left transition">
-              <span class="block text-sm font-semibold">Admin</span>
-              <span class="mt-1 block text-xs text-slate-500">Manage products, users, and checks</span>
-            </button>
-          </div>
-        </div>
-        <button type="submit" class="w-full rounded-2xl bg-slate-900 px-4 py-3.5 text-sm font-semibold text-white shadow-soft transition hover:-translate-y-0.5 hover:bg-slate-800">Access dashboard</button>
-      </form>
+      <form method="POST" action="controllers/Auth.php" class="space-y-5">
+  <div>
+    <label for="email" class="mb-2 block text-sm font-semibold text-slate-700">Email</label>
+    <input id="email" name="email" type="email" required placeholder="employee@company.com" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3.5 text-slate-900 outline-none transition focus:border-brand-500 focus:ring-4 focus:ring-brand-100" />
+  </div>
+  
+  <div>
+    <label for="password" class="mb-2 block text-sm font-semibold text-slate-700">Password</label>
+    <input id="password" name="password" type="password" required placeholder="••••••••" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3.5 text-slate-900 outline-none transition focus:border-brand-500 focus:ring-4 focus:ring-brand-100" />
+  </div>
 
+  <!-- عرض الأخطاء -->
+  <?php if (isset($_SESSION['error'])): ?>
+    <div class="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-600">
+      <?= htmlspecialchars($_SESSION['error']) ?>
+    </div>
+    <?php unset($_SESSION['error']); ?>
+  <?php endif; ?>
+
+  <div>
+    <p class="mb-3 text-sm font-semibold text-slate-700">Login as</p>
+    <div class="grid grid-cols-2 gap-3">
+      <label class="role-card rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-left transition cursor-pointer">
+        <input type="radio" name="role" value="customer" checked class="hidden" />
+        <span class="block text-sm font-semibold">Customer</span>
+        <span class="mt-1 block text-xs text-slate-500">Employees placing orders</span>
+      </label>
+      <label class="role-card rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-left transition cursor-pointer">
+        <input type="radio" name="role" value="admin" class="hidden" />
+        <span class="block text-sm font-semibold">Admin</span>
+        <span class="mt-1 block text-xs text-slate-500">Manage products, users, and checks</span>
+      </label>
+    </div>
+  </div>
+
+  <button type="submit" name="login" value="1" class="w-full rounded-2xl bg-slate-900 px-4 py-3.5 text-sm font-semibold text-white shadow-soft transition hover:-translate-y-0.5 hover:bg-slate-800">
+    Access dashboard
+  </button>
+</form>
       <div class="mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
         Access is restricted to registered employees and cafeteria administrators. If you do not have valid credentials, please contact the cafeteria administration desk.
       </div>
