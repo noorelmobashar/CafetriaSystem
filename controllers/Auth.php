@@ -47,10 +47,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 header('Location: ../index.php');
                 exit;
             }
+        }else {
+            $_SESSION['error'] = "Email and password are required.";
+            header('Location: ../index.php');
+            exit;
         }
     }
 
     if (isset($_POST['logout'])) {
+        $_SESSION = [];
         session_destroy();
         header('Location: ../index.php');
         exit;
