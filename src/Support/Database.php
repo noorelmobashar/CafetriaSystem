@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 namespace Cafetria\Support;
-
+require_once __DIR__ . '/EnvLoader.php';
 use PDO;
 use PDOException;
 use RuntimeException;

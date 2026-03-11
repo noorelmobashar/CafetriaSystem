@@ -1,4 +1,9 @@
 <?php
+session_start();
+if (isset($_SESSION['user_id']) && ($_SESSION['user_role'] !== 'customer')){
+    header('Location:'.($_SESSION['user_role'] === 'admin' ? '../admin/index.php' : '../index.php'));
+    exit;
+} 
 $pageTitle = 'Cafetria System | Customer Menu';
 $basePath = '..';
 $pageKey = 'customer-menu';

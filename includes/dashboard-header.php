@@ -1,4 +1,5 @@
 <?php
+
 $headerBadge = $headerBadge ?? 'Workspace';
 $headerTitle = $headerTitle ?? 'Dashboard';
 $headerSubtitle = $headerSubtitle ?? '';
@@ -14,8 +15,12 @@ $headerSubtitle = $headerSubtitle ?? '';
       </div>
     </div>
     <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
-      <div class="rounded-2xl bg-slate-100 px-4 py-3 text-sm text-slate-600">Logged in as <span id="shell-user-name" class="font-semibold text-slate-900">...</span></div>
-      <button id="logout-btn" class="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50">Logout</button>
+      <div class="rounded-2xl bg-slate-100 px-4 py-3 text-sm text-slate-600">Logged in as <span id="shell-user-name" class="font-semibold text-slate-900"><?php echo htmlspecialchars($_SESSION['user_name'] ?? '', ENT_QUOTES, 'UTF-8'); ?></span></div>
+      <!-- <button id="logout-btn" class="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50">Logout</button>
+        -->
+      <form action="../controllers/Auth.php" method="POST">
+        <button name="logout" type="submit" class="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50">Logout</button>
+      </form>
     </div>
   </div>
 </header>
