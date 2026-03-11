@@ -1,14 +1,13 @@
 <?php
 session_start();
-if (isset($_SESSION['user_id']) && ($_SESSION['user_role'] !== 'customer')){
-    header('Location:'.($_SESSION['user_role'] === 'admin' ? '../admin/index.php' : '../index.php'));
+if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'customer') {
+    header('Location: ../index.php');
     exit;
-} 
+}
 $pageTitle = 'Cafetria System | Customer Menu';
 $basePath = '..';
 $pageKey = 'customer-menu';
 $pageRole = 'customer';
-$pageScript = 'assets/js/pages/customer-menu.js';
 $currentPage = 'menu';
 $headerBadge = 'Customer Portal';
 $headerTitle = 'Order drinks in seconds';
