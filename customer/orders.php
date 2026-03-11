@@ -1,14 +1,13 @@
 <?php
 session_start();
-if (isset($_SESSION['user_id']) && ($_SESSION['user_role'] !== 'customer')){
-    header('Location:'.($_SESSION['user_role'] === 'admin' ? '../admin/index.php' : '../index.php'));
+if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'customer') {
+    header('Location: ../index.php');
     exit;
 }
 $pageTitle = 'Cafetria System | My Orders';
 $basePath = '..';
 $pageKey = 'customer-orders';
 $pageRole = 'customer';
-$pageScript = 'assets/js/pages/customer-orders.js';
 $currentPage = 'orders';
 $headerBadge = 'Customer Portal';
 $headerTitle = 'Track every order';
