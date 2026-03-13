@@ -26,6 +26,13 @@ function getProducts(): array {
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
+function getProduct(int $id): ?array {
+    $db = db();
+    $stmt = $db->prepare("SELECT * FROM products WHERE id = ?");
+    $stmt->execute([$id]);
+    return $stmt->fetch(PDO::FETCH_ASSOC);
+}
+
 function createProduct(string $name, float $price, ?int $categoryId, ?string $imagePath, bool $available = true): bool {
     $db = db();
     $stmt = $db->prepare("
@@ -50,8 +57,7 @@ function updateProduct(int $id, array $data): bool {
         SET name = ?, price = ?, category_id = ?, image_path = ?, available = ?, updated_at = NOW()
         WHERE id = ?
     ");
-    $stmt->execute([$data['name'], $data['price'], $data['category_id'], $data['image_path'], $data['available'], $id]);
-    return $stmt->rowCount() > 0;
+    return $stmt->execute([$data['name'], $data['price'], $data['category_id'], $data['image_path'], $data['available'], $id]);
 }
 
 
