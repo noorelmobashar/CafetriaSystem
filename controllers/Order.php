@@ -146,4 +146,72 @@ function getChecksAggregations(?int $userId, string $dateFrom, string $dateTo): 
 
 
      // In Customre Dashboard
+    function createCustomerOrder(int $userId, string $room, string $note, array $items): int {
+    return createManualOrder($userId, $room, $note, $items);
+}
+function getCustomerOrders(int $userId, string $dateFrom, string $dateTo): array {
+    $db     = db();
+    $where  = ['o.user_id = ?'];
+    $params = [$userId];
+    if ($dateFrom !== '') { $where[] = 'DATE(o.created_at) >= ?'; $params[] = $dateFrom; }
+    if ($dateTo   !== '') { $where[] = 'DATE(o.created_at) <= ?'; $params[] = $dateTo;   }
+
+    $stmt = $db->prepare(
+        "SELECT o.id, o.status, o.total_amount, o.room_snapshot, o.notes, o.created_at
+         FROM orders o
+         WHERE " . implode(' AND ', $where) . "
+         ORDER BY o.created_at DESC"
+    );
+    $stmt->execute($params);
+    $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    if (empty($orders)) return [];
+
+    $ids      = implode(',', array_map('intval', array_column($orders, 'id')));
+    $itemStmt = $db->query(
+        "SELECT oi.order_id, oi.quantity, p.name AS product_name
+         FROM order_items oi
+         LEFT JOIN products p ON oi.product_id = p.id
+         WHERE oi.order_id IN ($ids)"
+    );
+    $itemsByOrder = [];
+    foreach ($itemStmt->fetchAll(PDO::FETCH_ASSOC) as $item) {
+        $itemsByOrder[$item['order_id']][] = $item;
+    }
+    foreach ($orders as &$order) {
+        $order['items'] = $itemsByOrder[$order['id']] ?? [];
+    }
+    unset($order);
+    return $orders;
+}
+
     
+     function getCustomerInsights(int $userId): array {
+         $stmt = db()->prepare("
+         SELECT
+         SUM(status IN ('incoming', 'processing'))                        AS pending_count,
+         SUM(CASE WHEN status != 'canceled'
+         AND YEAR(created_at)  = YEAR(CURDATE())
+         AND MONTH(created_at) = MONTH(CURDATE())
+         THEN total_amount ELSE 0 END)                           AS month_spend
+             FROM orders
+             WHERE user_id = ?
+             ");
+         $stmt->execute([$userId]);
+         $row = $stmt->fetch(PDO::FETCH_ASSOC);
+         return [
+             'pending_count' => (int)($row['pending_count'] ?? 0),
+             'month_spend'   => (float)($row['month_spend']   ?? 0.0),
+                 ];
+     }
+    function cancelCustomerOrder(int $orderId, int $userId): bool {
+        $db   = db();
+        $stmt = $db->prepare('SELECT status, user_id FROM orders WHERE id = ?');
+        $stmt->execute([$orderId]);
+        $order = $stmt->fetch(PDO::FETCH_ASSOC);
+        if (!$order || (int)$order['user_id'] !== $userId) return false;
+        if (!in_array($order['status'], ['incoming', 'processing'], true)) return false;
+        $db->prepare('DELETE FROM order_items WHERE order_id = ?')->execute([$orderId]);
+        $db->prepare('DELETE FROM orders WHERE id = ?')->execute([$orderId]);
+        return true;
+    }
