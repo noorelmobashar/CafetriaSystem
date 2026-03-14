@@ -1,7 +1,7 @@
 <?php
 session_start();
-if (isset($_SESSION['user_id']) && ($_SESSION['user_role'] !== 'customer')){
-    header('Location:'.($_SESSION['user_role'] === 'admin' ? '../admin/index.php' : '../index.php'));
+if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'customer') {
+    header('Location: ../index.php');
     exit;
 }
 require_once __DIR__ . '/../controllers/Order.php';
@@ -178,3 +178,5 @@ require __DIR__ . '/../includes/page-start.php';
   </div>
 </main>
 <?php
+$pageScript = 'assets/js/components/customer-menu-cart.js';
+require __DIR__ . '/../includes/page-end.php';

@@ -8,7 +8,6 @@ $pageTitle = 'Cafetria System | Login';
 $basePath = '.';
 $pageKey = 'login';
 $pageRole = 'guest';
-$pageScript = 'assets/js/pages/login.js';
 require __DIR__ . '/includes/page-start.php';
 ?>
 <main class="relative min-h-screen px-4 py-10 md:px-6 lg:px-8">

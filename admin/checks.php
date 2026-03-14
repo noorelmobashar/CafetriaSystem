@@ -1,7 +1,8 @@
 <?php
 session_start();
-if (isset($_SESSION['user_id']) && ($_SESSION['user_role'] !== 'admin')){
-    header('Location:'.($_SESSION['user_role'] === 'customer' ? '../customer/menu.php' : '../index.php'));
+
+if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'admin') {
+    header('Location: ../index.php');
     exit;
 }
 require_once __DIR__ . '/../controllers/Order.php';
@@ -12,7 +13,8 @@ $filterUserId   = (isset($_GET['user_id']) && $_GET['user_id'] !== 'all') ? (int
 $filterDateFrom = trim($_GET['date_from'] ?? '');
 $filterDateTo   = trim($_GET['date_to']   ?? '');
 
-$customerUsers = getCustomerUsers();
+$userController = new UserController();
+$customerUsers =  $userController->index();
 $aggregations  = getChecksAggregations($filterUserId, $filterDateFrom, $filterDateTo);
 $orders        = getOrdersByFilters($filterUserId, $filterDateFrom, $filterDateTo);
 

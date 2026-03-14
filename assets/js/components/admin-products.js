@@ -24,8 +24,17 @@ function renderProducts() {
 }
 
 function bindProductActions() {
-  document.getElementById('add-product-btn').onclick = () => openProductModal();
-  document.getElementById('products-table').onclick = (event) => {
+  const addButton = document.getElementById('add-product-btn');
+  if (addButton) {
+    addButton.onclick = () => openProductModal();
+  }
+
+  const productsTable = document.getElementById('products-table');
+  if (!productsTable) {
+    return;
+  }
+
+  productsTable.onclick = (event) => {
     const editButton = event.target.closest('[data-edit-product]');
     const deleteButton = event.target.closest('[data-delete-product]');
 

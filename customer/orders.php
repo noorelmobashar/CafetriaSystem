@@ -1,13 +1,13 @@
 <?php
 session_start();
-if (isset($_SESSION['user_id']) && ($_SESSION['user_role'] !== 'customer')){
-    header('Location:'.($_SESSION['user_role'] === 'admin' ? '../admin/index.php' : '../index.php'));
+if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'customer') {
+    header('Location: ../index.php');
     exit;
 }
 require_once __DIR__ . '/../controllers/Order.php';
 
 $userId = (int)$_SESSION['user_id'];
-
+  
 $successMessage = null;
 $errorMessage   = null;
 

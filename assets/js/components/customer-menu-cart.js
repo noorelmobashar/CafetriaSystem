@@ -73,6 +73,20 @@ function updateQtyDisplay(productId) {
   );
   const span = article?.querySelector("[data-qty-display]");
   if (span) span.textContent = String(qty);
+  
+  // Disable minus button when qty is 0
+  const decreaseBtn = article?.querySelector('[data-action="decrease"]');
+  if (decreaseBtn) {
+    if (qty === 0) {
+      decreaseBtn.disabled = true;
+      decreaseBtn.style.opacity = '0.5';
+      decreaseBtn.style.cursor = 'not-allowed';
+    } else {
+      decreaseBtn.disabled = false;
+      decreaseBtn.style.opacity = '1';
+      decreaseBtn.style.cursor = 'pointer';
+    }
+  }
 }
 
 // +/- buttons
@@ -135,12 +149,18 @@ document.getElementById("place-order-btn")?.addEventListener("click", () => {
   if (!entries.length) {
     const btn = document.getElementById("place-order-btn");
     const origText = btn.textContent;
-    btn.textContent = "Add at least one product first";
+    const origClass = btn.className;
+    
+    // Show error state with red background
+    btn.textContent = "❌ Add at least one product first";
+    btn.className = origClass + " bg-red-500 hover:bg-red-600";
     btn.disabled = true;
+    
     setTimeout(() => {
       btn.textContent = origText;
+      btn.className = origClass;
       btn.disabled = false;
-    }, 2200);
+    }, 2500);
     return;
   }
 
