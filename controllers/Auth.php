@@ -23,12 +23,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $stmt = $db->prepare("
                     SELECT id, name, email, password_hash, role, profile_pic 
                     FROM users 
-                    WHERE email = ? AND role = ?
+                    WHERE email = ?
+                    LIMIT 1
                 ");
-                $stmt->execute([$email, $role]);
+                $stmt->execute([$email]);
                 $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-                if ($user && $password === $user['password_hash']) {
+                if ($user && password_verify($password, $user['password_hash'])) {
                     $_SESSION['user_id'] = $user['id'];
                     $_SESSION['user_role'] = $user['role'];
                     $_SESSION['user_name'] = $user['name'];

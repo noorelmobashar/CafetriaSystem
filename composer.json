@@ -10,5 +10,9 @@
     "psr-4": {
       "Cafetria\\": "src/"
     }
+  },
+  "scripts": {
+    "db:seed": "php scripts/seed.php",
+    "db:seed:force": "php scripts/seed.php --force"
   }
 }

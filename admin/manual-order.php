@@ -9,12 +9,13 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'admin') {
 require_once __DIR__ . '/../controllers/Order.php';
 require_once __DIR__ . '/../controllers/User.php';
 require_once __DIR__ . '/../controllers/Product.php';
-
+require_once __DIR__ . '/../controllers/User.php';
 // Room options from orders.room_snapshot enum
 $roomOptions = ['100','200','300','400','500','600','700','800','900','1000'];
 
 // Load customer users
-$customerUsers = getCustomerUsers();
+$userController = new UserController();
+$customerUsers = $userController->index();
 
 $successMessage = null;
 $errorMessage   = null;
