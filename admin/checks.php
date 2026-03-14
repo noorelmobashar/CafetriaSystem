@@ -13,7 +13,8 @@ $filterUserId   = (isset($_GET['user_id']) && $_GET['user_id'] !== 'all') ? (int
 $filterDateFrom = trim($_GET['date_from'] ?? '');
 $filterDateTo   = trim($_GET['date_to']   ?? '');
 
-$customerUsers = getCustomerUsers();
+$userController = new UserController();
+$customerUsers =  $userController->index();
 $aggregations  = getChecksAggregations($filterUserId, $filterDateFrom, $filterDateTo);
 $orders        = getOrdersByFilters($filterUserId, $filterDateFrom, $filterDateTo);
 
