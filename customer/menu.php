@@ -178,3 +178,5 @@ require __DIR__ . '/../includes/page-start.php';
   </div>
 </main>
 <?php
+$pageScript = 'assets/js/components/customer-menu-cart.js';
+require __DIR__ . '/../includes/page-end.php';
