@@ -7,6 +7,8 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'customer') {
 require_once __DIR__ . '/../controllers/Order.php';
 require_once __DIR__ . '/../controllers/Product.php';
 
+$productController = new ProductController();
+
 $roomOptions = ['100','200','300','400','500','600','700','800','900','1000'];
 $userId = (int)$_SESSION['user_id'];
 
@@ -37,7 +39,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_order'])) {
     }
 }
 
-$products = searchProducts('');
+$products = $productController->search('');
 $insights = getCustomerInsights($userId);
 
 $pageTitle = 'Cafetria System | Customer Menu';
