@@ -10,11 +10,7 @@ require_once __DIR__ . '/../includes/bootstrap.php';
 require_once __DIR__ . '/../controllers/User.php';
 
 $userController = new UserController();
-$perPage        = 15;
-$page           = max(1, (int) ($_GET['page'] ?? 1));
-$totalCount     = $userController->count();
-$pagination     = paginate($totalCount, $page, $perPage);
-$users          = $userController->index($pagination['current'], $perPage);
+$users = $userController->index('customer');
 
 $successMessage = $_SESSION['success_message'] ?? null;
 $errorMessage = $_SESSION['error_message'] ?? null;
@@ -92,7 +88,6 @@ require __DIR__ . '/../includes/page-start.php';
           </table>
         </div>
       </div>
-      <?= renderPagination($pagination, 'users.php') ?>
     </section>
   </div>
 </main>
