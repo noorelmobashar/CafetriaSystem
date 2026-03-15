@@ -10,6 +10,8 @@ require_once __DIR__ . '/../controllers/Order.php';
 require_once __DIR__ . '/../controllers/User.php';
 require_once __DIR__ . '/../controllers/Product.php';
 require_once __DIR__ . '/../controllers/User.php';
+
+$productController = new ProductController();
 // Room options from orders.room_snapshot enum
 $roomOptions = ['100','200','300','400','500','600','700','800','900','1000'];
 
@@ -50,7 +52,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_order'])) {
 
 // Search query
 $searchQuery = trim($_POST['product_search'] ?? '');
-$products = searchProducts($searchQuery);
+$products = $productController->search($searchQuery);
 
 // Preserve submitted quantities across render (after search or error)
 $submittedQtys = $_POST['qty'] ?? [];
