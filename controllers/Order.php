@@ -125,24 +125,47 @@ function getChecksAggregations(?int $userId, string $dateFrom, string $dateTo): 
     }
     
     //For admin dashboard
-    function getOrdersByFilters(?int $userId, string $dateFrom, string $dateTo): array {
+    function getOrdersByFilters(?int $userId, string $dateFrom, string $dateTo, int $page = 1, int $perPage = 15): array {
         $db = db();
     $where  = ["o.status != 'canceled'"];
     $params = [];
     if ($userId !== null) { $where[] = 'o.user_id = ?';           $params[] = $userId;   }
     if ($dateFrom !== '') { $where[] = 'DATE(o.created_at) >= ?'; $params[] = $dateFrom; }
     if ($dateTo   !== '') { $where[] = 'DATE(o.created_at) <= ?'; $params[] = $dateTo;   }
+    $offset = ($page - 1) * $perPage;
     $stmt = $db->prepare(
         "SELECT o.id, o.status, o.total_amount, o.room_snapshot, o.created_at,
                 u.name AS user_name
          FROM orders o
          LEFT JOIN users u ON o.user_id = u.id
          WHERE " . implode(' AND ', $where) . "
-         ORDER BY o.created_at DESC"
+         ORDER BY o.created_at DESC
+         LIMIT ? OFFSET ?"
          );
-         $stmt->execute($params);
+    $params[] = $perPage;
+    $params[] = $offset;
+    foreach ($params as $i => $value) {
+        $stmt->bindValue($i + 1, $value, is_int($value) ? PDO::PARAM_INT : PDO::PARAM_STR);
+    }
+         $stmt->execute();
          return $stmt->fetchAll(PDO::FETCH_ASSOC);
      }
+
+//For admin dashboard
+//For admin dashboard
+function countOrdersByFilters(?int $userId, string $dateFrom, string $dateTo): int {
+    $db = db();
+    $where  = ["o.status != 'canceled'"];
+    $params = [];
+    if ($userId !== null) { $where[] = 'o.user_id = ?';           $params[] = $userId;   }
+    if ($dateFrom !== '') { $where[] = 'DATE(o.created_at) >= ?'; $params[] = $dateFrom; }
+    if ($dateTo   !== '') { $where[] = 'DATE(o.created_at) <= ?'; $params[] = $dateTo;   }
+    $stmt = $db->prepare(
+        "SELECT COUNT(*) FROM orders o WHERE " . implode(' AND ', $where)
+    );
+    $stmt->execute($params);
+    return (int) $stmt->fetchColumn();
+}
 
 
 
@@ -157,7 +180,7 @@ function createCustomerOrder(int $userId, string $room, string $note, array $ite
     return createManualOrder($userId, $room, $note, $items);
 }
 
-function getCustomerOrders(int $userId, string $dateFrom, string $dateTo): array
+function getCustomerOrders(int $userId, string $dateFrom, string $dateTo, int $page = 1, int $perPage = 15): array
 {
     $db = db();
 
@@ -174,6 +197,8 @@ function getCustomerOrders(int $userId, string $dateFrom, string $dateTo): array
         $params[] = $dateTo;
     }
 
+    $offset = ($page - 1) * $perPage;
+
     $stmt = $db->prepare("
         SELECT 
             o.id, 
@@ -185,9 +210,15 @@ function getCustomerOrders(int $userId, string $dateFrom, string $dateTo): array
         FROM orders o
         WHERE " . implode(' AND ', $where) . "
         ORDER BY o.created_at DESC
+        LIMIT ? OFFSET ?
     ");
 
-    $stmt->execute($params);
+    $params[] = $perPage;
+    $params[] = $offset;
+    foreach ($params as $i => $value) {
+        $stmt->bindValue($i + 1, $value, is_int($value) ? PDO::PARAM_INT : PDO::PARAM_STR);
+    }
+    $stmt->execute();
     $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     if (empty($orders)) {
@@ -219,6 +250,29 @@ function getCustomerOrders(int $userId, string $dateFrom, string $dateTo): array
     unset($order);
 
     return $orders;
+}
+
+function countCustomerOrders(int $userId, string $dateFrom, string $dateTo): int
+{
+    $db     = db();
+    $where  = ['user_id = ?'];
+    $params = [$userId];
+
+    if ($dateFrom !== '') {
+        $where[]  = 'DATE(created_at) >= ?';
+        $params[] = $dateFrom;
+    }
+
+    if ($dateTo !== '') {
+        $where[]  = 'DATE(created_at) <= ?';
+        $params[] = $dateTo;
+    }
+
+    $stmt = $db->prepare(
+        "SELECT COUNT(*) FROM orders WHERE " . implode(' AND ', $where)
+    );
+    $stmt->execute($params);
+    return (int) $stmt->fetchColumn();
 }
 
 function getCustomerInsights(int $userId): array

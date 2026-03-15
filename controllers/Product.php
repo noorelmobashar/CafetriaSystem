@@ -14,14 +14,23 @@
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
-function getProducts(): array {
-    $db = db();
-    $stmt = $db->prepare("
+function countProducts(): int {
+    $stmt = db()->query("SELECT COUNT(*) FROM products");
+    return (int) $stmt->fetchColumn();
+}
+
+function getProducts(int $page = 1, int $perPage = 15): array {
+    $db     = db();
+    $offset = ($page - 1) * $perPage;
+    $stmt   = $db->prepare("
         SELECT p.*, c.name AS category
         FROM products p
         LEFT JOIN categories c ON p.category_id = c.id
         ORDER BY c.name, p.name
+        LIMIT ? OFFSET ?
     ");
+    $stmt->bindValue(1, $perPage, PDO::PARAM_INT);
+    $stmt->bindValue(2, $offset,  PDO::PARAM_INT);
     $stmt->execute();
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }

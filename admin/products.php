@@ -51,7 +51,11 @@ unset($_SESSION['success_message'], $_SESSION['error_message']);
 
       require_once __DIR__ . '/../controllers/Product.php';
 
-      $products = getProducts();
+      $perPage    = 15;
+      $page       = max(1, (int) ($_GET['page'] ?? 1));
+      $totalCount = countProducts();
+      $pagination = paginate($totalCount, $page, $perPage);
+      $products   = getProducts($pagination['current'], $perPage);
 
       ?>
 
@@ -112,6 +116,7 @@ unset($_SESSION['success_message'], $_SESSION['error_message']);
           </table>
         </div>
       </div>
+      <?= renderPagination($pagination, 'products.php') ?>
     </section>
   </div>
 </main>

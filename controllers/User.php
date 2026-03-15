@@ -9,9 +9,19 @@ function getCustomerUsers(): array {
 
 class UserController {
 
-    public function index(): array {
+    public function count(): int {
+        $stmt = db()->query("SELECT COUNT(*) FROM users WHERE role = 'customer'");
+        return (int) $stmt->fetchColumn();
+    }
 
-        $stmt = db()->query("SELECT id, name, email, role, profile_pic FROM users WHERE role = 'customer' ORDER BY name");
+    public function index(int $page = 1, int $perPage = 15): array {
+        $offset = ($page - 1) * $perPage;
+        $stmt   = db()->prepare(
+            "SELECT id, name, email, role, profile_pic FROM users WHERE role = 'customer' ORDER BY name LIMIT ? OFFSET ?"
+        );
+        $stmt->bindValue(1, $perPage, PDO::PARAM_INT);
+        $stmt->bindValue(2, $offset,  PDO::PARAM_INT);
+        $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 

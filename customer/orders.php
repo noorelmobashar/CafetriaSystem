@@ -22,7 +22,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['cancel_order_id'])) {
 
 $dateFrom = trim($_GET['date_from'] ?? '');
 $dateTo   = trim($_GET['date_to']   ?? '');
-$orders   = getCustomerOrders($userId, $dateFrom, $dateTo);
+$perPage  = 10;
+$page     = max(1, (int) ($_GET['page'] ?? 1));
+$total    = countCustomerOrders($userId, $dateFrom, $dateTo);
+$pagination = paginate($total, $page, $perPage);
+$orders   = getCustomerOrders($userId, $dateFrom, $dateTo, $pagination['current'], $perPage);
 
 $statusMeta = [
     'incoming'         => ['label' => 'Incoming',        'pill' => 'status-incoming'],
@@ -127,6 +131,13 @@ require __DIR__ . '/../includes/page-start.php';
           <?php endforeach; ?>
         <?php endif; ?>
       </div>
+      <?php
+        $filterParams = array_filter([
+            'date_from' => $dateFrom ?: null,
+            'date_to'   => $dateTo   ?: null,
+        ], static fn ($v) => $v !== null && $v !== '');
+        echo renderPagination($pagination, 'orders.php', $filterParams);
+      ?>
     </section>
   </div>
 </main>

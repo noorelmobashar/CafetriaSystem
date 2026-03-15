@@ -57,3 +57,5 @@ if (!function_exists('is_active_page')) {
         return $currentPage === $expectedPage ? 'bg-slate-900 text-white shadow-soft' : 'bg-slate-100 text-slate-700 hover:bg-slate-200';
     }
 }
+
+require_once dirname(__DIR__) . '/includes/pagination.php';

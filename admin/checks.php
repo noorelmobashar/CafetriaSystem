@@ -14,9 +14,13 @@ $filterDateFrom = trim($_GET['date_from'] ?? '');
 $filterDateTo   = trim($_GET['date_to']   ?? '');
 
 $userController = new UserController();
-$customerUsers =  $userController->index();
-$aggregations  = getChecksAggregations($filterUserId, $filterDateFrom, $filterDateTo);
-$orders        = getOrdersByFilters($filterUserId, $filterDateFrom, $filterDateTo);
+$customerUsers  = getCustomerUsers();
+$perPage        = 15;
+$page           = max(1, (int) ($_GET['page'] ?? 1));
+$aggregations   = getChecksAggregations($filterUserId, $filterDateFrom, $filterDateTo);
+$totalCount     = countOrdersByFilters($filterUserId, $filterDateFrom, $filterDateTo);
+$pagination     = paginate($totalCount, $page, $perPage);
+$orders         = getOrdersByFilters($filterUserId, $filterDateFrom, $filterDateTo, $pagination['current'], $perPage);
 
 $statusMeta = [
     'incoming'         => ['label' => 'Incoming',         'pill' => 'status-incoming'],
@@ -127,6 +131,15 @@ require __DIR__ . '/../includes/page-start.php';
           </tbody>
         </table>
       </div>
+
+      <?php
+        $filterParams = array_filter([
+            'user_id'   => $_GET['user_id']   ?? null,
+            'date_from' => $filterDateFrom ?: null,
+            'date_to'   => $filterDateTo   ?: null,
+        ], static fn ($v) => $v !== null && $v !== '');
+        echo renderPagination($pagination, 'checks.php', $filterParams);
+      ?>
 
     </section>
   </div>
