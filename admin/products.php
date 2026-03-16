@@ -2,8 +2,8 @@
 session_start();
 
 if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'admin') {
-    header('Location: ../index.php');
-    exit;
+  header('Location: ../index.php');
+  exit;
 }
 $pageTitle = 'Cafetria System | Products';
 $basePath = '..';
@@ -14,6 +14,9 @@ $headerBadge = 'Administrator';
 $headerTitle = 'Manage products';
 $headerSubtitle = 'Keep the cafeteria catalog clean, visual, and easy to update.';
 require __DIR__ . '/../includes/page-start.php';
+require_once __DIR__ . '/../controllers/Product.php';
+
+$productController = new ProductController();
 
 $successMessage = $_SESSION['success_message'] ?? null;
 $errorMessage = $_SESSION['error_message'] ?? null;
@@ -34,7 +37,10 @@ unset($_SESSION['success_message'], $_SESSION['error_message']);
 
     <section class="rounded-[2rem] border border-white/70 bg-white/85 p-5 shadow-soft backdrop-blur md:p-6">
       <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div><p class="text-sm font-semibold uppercase tracking-[0.25em] text-cafe-500">Inventory</p><h2 class="mt-2 text-2xl font-bold text-slate-900">Products</h2></div>
+        <div>
+          <p class="text-sm font-semibold uppercase tracking-[0.25em] text-cafe-500">Inventory</p>
+          <h2 class="mt-2 text-2xl font-bold text-slate-900">Products</h2>
+        </div>
         <a href="add-product.php" class="rounded-2xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800">Add product</a>
       </div>
 
@@ -48,10 +54,10 @@ unset($_SESSION['success_message'], $_SESSION['error_message']);
       // TODO 2: Ensure each product has what this table needs:
       // id, name, category (or category name), price, available, image_path.
 
-
-      require_once __DIR__ . '/../controllers/Product.php';
-
-      $products = getProducts();
+      $page = (int) ($_GET['page'] ?? 1);
+      $result = getProducts($page, 5);
+      $products = $result['data'];
+      $totalPages = $result['totalPages'];
 
       ?>
 
@@ -70,46 +76,60 @@ unset($_SESSION['success_message'], $_SESSION['error_message']);
             </thead>
             <tbody class="divide-y divide-slate-100 bg-white text-slate-700">
               <?php
-              if(!empty($products)) {
+              if (!empty($products)) {
                 foreach ($products as $product):
               ?>
-              <tr>
-                <td class="px-4 py-3"><?php echo htmlspecialchars($product['name']); ?></td>
-                <td class="px-4 py-3"><?php echo htmlspecialchars($product['category']); ?></td>
-                <td class="px-4 py-3"><?php echo htmlspecialchars($product['price']); ?> LE</td>
-                <td class="px-4 py-3"><?php echo $product['available'] ? 'Yes' : 'No'; ?></td>
-                <td class="px-4 py-3"><?php echo $product['image_path'] ? '<img src="' . $product['image_path'] . '" alt="' . $product['name'] . '">' : 'No image'; ?></td>
-                <td class="px-4 py-3">
-                  <div class="flex flex-wrap gap-2">
-                    <a
-                      href="edit-product.php?id=<?php echo (int)$product['id']; ?>"
-                      class="inline-flex items-center rounded-xl bg-slate-900 px-3 py-2 text-xs font-semibold text-white transition hover:bg-slate-800"
-                    >
-                      Edit
-                    </a>
-                    <form method="POST" action="delete-product.php" class="js-delete-form">
-                      <input type="hidden" name="id" value="<?php echo (int)$product['id']; ?>">
-                      <button
-                        type="button"
-                        data-open-delete-modal="1"
-                        data-product-name="<?php echo htmlspecialchars($product['name'], ENT_QUOTES, 'UTF-8'); ?>"
-                        class="inline-flex items-center rounded-xl bg-rose-50 px-3 py-2 text-xs font-semibold text-rose-700 transition hover:bg-rose-100"
-                      >
-                        Delete
-                      </button>
-                    </form>
-                  </div>
-                </td>
-              </tr>
-             <?php endforeach; ?>
-             <?php } else { ?>
-              <tr>
-                <td class="px-4 py-3" colspan="7">No products found</td>
-              </tr>
-             <?php } ?>
-             
+                  <tr>
+                    <td class="px-4 py-3"><?php echo htmlspecialchars($product['name']); ?></td>
+                    <td class="px-4 py-3"><?php echo htmlspecialchars($product['category']); ?></td>
+                    <td class="px-4 py-3"><?php echo htmlspecialchars($product['price']); ?> LE</td>
+                    <td class="px-4 py-3"><?php echo $product['available'] ? 'Yes' : 'No'; ?></td>
+                    <td class="px-4 py-3">
+                      <?php if (!empty($product['image_path'])): ?>
+                        <img src="../<?php echo htmlspecialchars($product['image_path']); ?>" alt="<?php echo htmlspecialchars($product['name']); ?>" class="h-12 w-12 rounded object-cover">
+                      <?php else: ?>
+                        <span class="text-sm text-slate-500">No image</span>
+                      <?php endif; ?>
+                    </td>
+                    <td class="px-4 py-3">
+                      <div class="flex flex-wrap gap-2">
+                        <a
+                          href="edit-product.php?id=<?php echo (int)$product['id']; ?>"
+                          class="inline-flex items-center rounded-xl bg-slate-900 px-3 py-2 text-xs font-semibold text-white transition hover:bg-slate-800">
+                          Edit
+                        </a>
+                        <form method="POST" action="delete-product.php" class="js-delete-form">
+                          <input type="hidden" name="id" value="<?php echo (int)$product['id']; ?>">
+                          <button
+                            type="button"
+                            data-open-delete-modal="1"
+                            data-product-name="<?php echo htmlspecialchars($product['name'], ENT_QUOTES, 'UTF-8'); ?>"
+                            class="inline-flex items-center rounded-xl bg-rose-50 px-3 py-2 text-xs font-semibold text-rose-700 transition hover:bg-rose-100">
+                            Delete
+                          </button>
+                        </form>
+                      </div>
+                    </td>
+                  </tr>
+                <?php endforeach; ?>
+              <?php } else { ?>
+                <tr>
+                  <td class="px-4 py-3" colspan="7">No products found</td>
+                </tr>
+              <?php } ?>
+
             </tbody>
           </table>
+
+          <div class="mt-4 flex gap-2">
+            <?php for ($i = 1; $i <= $totalPages; $i++): ?>
+              <a
+                href="?page=<?php echo $i; ?>"
+                class="px-3 py-1 rounded border <?php echo $i == $page ? 'bg-slate-900 text-white' : 'bg-white'; ?>">
+                <?php echo $i; ?>
+              </a>
+            <?php endfor; ?>
+          </div>
         </div>
       </div>
     </section>
@@ -128,18 +148,26 @@ unset($_SESSION['success_message'], $_SESSION['error_message']);
 </div>
 
 <script>
-  (function () {
+  (function() {
     const overlay = document.getElementById('delete-modal-overlay');
     const cancelButton = document.getElementById('delete-modal-cancel');
     const confirmButton = document.getElementById('delete-modal-confirm');
     const message = document.getElementById('delete-modal-message');
     let pendingForm = null;
 
-    function openModal() { overlay.classList.remove('hidden'); overlay.classList.add('flex'); }
-    function closeModal() { overlay.classList.add('hidden'); overlay.classList.remove('flex'); pendingForm = null; }
+    function openModal() {
+      overlay.classList.remove('hidden');
+      overlay.classList.add('flex');
+    }
+
+    function closeModal() {
+      overlay.classList.add('hidden');
+      overlay.classList.remove('flex');
+      pendingForm = null;
+    }
 
     document.querySelectorAll('[data-open-delete-modal]').forEach((button) => {
-      button.addEventListener('click', function () {
+      button.addEventListener('click', function() {
         pendingForm = this.closest('form');
         const productName = this.getAttribute('data-product-name') || 'this product';
         message.textContent = 'Delete "' + productName + '"?';
@@ -148,13 +176,13 @@ unset($_SESSION['success_message'], $_SESSION['error_message']);
     });
 
     cancelButton.addEventListener('click', closeModal);
-    overlay.addEventListener('click', function (event) {
+    overlay.addEventListener('click', function(event) {
       if (event.target === overlay) {
         closeModal();
       }
     });
 
-    confirmButton.addEventListener('click', function () {
+    confirmButton.addEventListener('click', function() {
       if (pendingForm) {
         pendingForm.submit();
       }

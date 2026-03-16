@@ -9,7 +9,6 @@ $pageTitle = 'Cafetria System | Admin Dashboard';
 $basePath = '..';
 $pageKey = 'admin-dashboard';
 $pageRole = 'admin';
-$pageScript = 'assets/js/pages/admin-dashboard.js';
 $currentPage = 'dashboard';
 $headerBadge = 'Administrator';
 $headerTitle = 'Cafeteria control center';

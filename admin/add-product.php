@@ -8,6 +8,8 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'admin') {
 
 require_once __DIR__ . '/../includes/bootstrap.php';
 require_once __DIR__ . '/../controllers/Product.php';
+
+$productController = new ProductController();
 $db = db();
 $successMessage = $_SESSION['success_message'] ?? null;
 $errorMessage = null;
@@ -18,7 +20,6 @@ $form = [
     'price' => '',
     'category_id' => '',
     'available' => '1',
-    'image_path' => '',
 ];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_product'])) {
@@ -26,7 +27,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_product'])) {
     $form['price'] = trim((string)($_POST['price'] ?? ''));
     $form['category_id'] = trim((string)($_POST['category_id'] ?? ''));
     $form['available'] = isset($_POST['available']) ? '1' : '0';
-    $form['image_path'] = trim((string)($_POST['image_path'] ?? ''));
 
     if ($form['name'] === '') {
         $errorMessage = 'Product name is required.';
@@ -34,9 +34,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_product'])) {
         $errorMessage = 'Price must be a valid non-negative number.';
     } else {
         try {
-            $categoryId = $form['category_id'] === '' ? null : (int)$form['category_id'];
-            $imagePath = $form['image_path'] === '' ? null : $form['image_path'];
-            createProduct($form['name'], (float)$form['price'], $categoryId, $imagePath, (bool)$form['available']);
+            $productController->store([
+                'name' => $form['name'],
+                'price' => (float)$form['price'],
+                'category_id' => $form['category_id'] === '' ? null : (int)$form['category_id'],
+                'available' => (int)$form['available'],
+                'image_path' => $_FILES['image_path'] ?? null,
+            ]);
             $_SESSION['success_message'] = 'Product added successfully.';
             header('Location: add-product.php');
             exit;
@@ -80,7 +84,7 @@ require __DIR__ . '/../includes/page-start.php';
         <a href="products.php" class="rounded-2xl bg-slate-100 px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-200">Back to products</a>
       </div>
 
-      <form method="POST" class="grid gap-5 md:grid-cols-2">
+      <form method="POST" enctype="multipart/form-data" class="grid gap-5 md:grid-cols-2">
         <div class="md:col-span-2">
           <label for="product-name" class="mb-2 block text-sm font-semibold text-slate-700">Product name</label>
           <input id="product-name" name="name" type="text" value="<?= htmlspecialchars($form['name']) ?>" placeholder="Latte" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-brand-500 focus:ring-4 focus:ring-brand-100" />
@@ -102,8 +106,8 @@ require __DIR__ . '/../includes/page-start.php';
         </div>
 
         <div class="md:col-span-2">
-          <label for="product-image" class="mb-2 block text-sm font-semibold text-slate-700">Image path (optional)</label>
-          <input id="product-image" name="image_path" type="text" value="<?= htmlspecialchars($form['image_path']) ?>" placeholder="assets/img/products/latte.jpg" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-brand-500 focus:ring-4 focus:ring-brand-100" />
+          <label for="product-image" class="mb-2 block text-sm font-semibold text-slate-700">Product image (optional)</label>
+          <input id="product-image" name="image_path" type="file" accept="image/png,image/jpeg,image/gif" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-brand-500 focus:ring-4 focus:ring-brand-100" />
         </div>
 
         <div class="md:col-span-2">

@@ -12,11 +12,16 @@ require_once __DIR__ . '/../controllers/User.php';
 $filterUserId   = (isset($_GET['user_id']) && $_GET['user_id'] !== 'all') ? (int)$_GET['user_id'] : null;
 $filterDateFrom = trim($_GET['date_from'] ?? '');
 $filterDateTo   = trim($_GET['date_to']   ?? '');
+$page = (int) ($_GET['page'] ?? 1);
+
 
 $userController = new UserController();
-$customerUsers =  $userController->index();
+$customerUsers =  getCustomerUsers();
 $aggregations  = getChecksAggregations($filterUserId, $filterDateFrom, $filterDateTo);
-$orders        = getOrdersByFilters($filterUserId, $filterDateFrom, $filterDateTo);
+$data        = getOrdersByFilters($filterUserId, $filterDateFrom, $filterDateTo ,$page , 5);
+$orders      = $data['data'];
+$totalPages  = $data['totalPages'];
+
 
 $statusMeta = [
     'incoming'         => ['label' => 'Incoming',         'pill' => 'status-incoming'],
@@ -126,6 +131,17 @@ require __DIR__ . '/../includes/page-start.php';
             <?php endif; ?>
           </tbody>
         </table>
+
+          <div class="mt-4 flex gap-2">
+            <?php for ($i = 1; $i <= $totalPages; $i++): ?>
+              <a
+                href="?page=<?php echo $i; ?>"
+                class="px-3 py-1 rounded border <?php echo $i == $page ? 'bg-slate-900 text-white' : 'bg-white'; ?>">
+                <?php echo $i; ?>
+              </a>
+            <?php endfor; ?>
+          </div>
+
       </div>
 
     </section>

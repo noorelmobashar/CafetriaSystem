@@ -1,7 +1,8 @@
 <?php
 require_once __DIR__ . '/../includes/bootstrap.php';
 
-function getAllOrders() {
+function getAllOrders()
+{
     $db = db();
 
     $stmt = $db->query("
@@ -40,7 +41,8 @@ function getAllOrders() {
     return $grouped;
 }
 
-function advanceOrderStatus(int $orderId): bool {
+function advanceOrderStatus(int $orderId): bool
+{
     $db = db();
     $next = [
         'incoming'         => 'processing',
@@ -56,7 +58,8 @@ function advanceOrderStatus(int $orderId): bool {
     return true;
 }
 //For admin dashboard
-function createManualOrder(int $userId, string $room, string $note, array $items): int {
+function createManualOrder(int $userId, string $room, string $note, array $items): int
+{
     $db = db();
 
     // Fetch prices from DB — never trust frontend values
@@ -107,13 +110,23 @@ function createManualOrder(int $userId, string $room, string $note, array $items
 }
 
 //For admin dashboard
-function getChecksAggregations(?int $userId, string $dateFrom, string $dateTo): array {
+function getChecksAggregations(?int $userId, string $dateFrom, string $dateTo): array
+{
     $db = db();
     $where  = ["status != 'canceled'"];
     $params = [];
-    if ($userId !== null) { $where[] = 'user_id = ?';           $params[] = $userId;   }
-    if ($dateFrom !== '') { $where[] = 'DATE(created_at) >= ?'; $params[] = $dateFrom; }
-    if ($dateTo   !== '') { $where[] = 'DATE(created_at) <= ?'; $params[] = $dateTo;   }
+    if ($userId !== null) {
+        $where[] = 'user_id = ?';
+        $params[] = $userId;
+    }
+    if ($dateFrom !== '') {
+        $where[] = 'DATE(created_at) >= ?';
+        $params[] = $dateFrom;
+    }
+    if ($dateTo   !== '') {
+        $where[] = 'DATE(created_at) <= ?';
+        $params[] = $dateTo;
+    }
     $stmt = $db->prepare(
         "SELECT COALESCE(SUM(total_amount), 0) AS total_amount,
                 COUNT(*)                       AS orders_count,
@@ -122,42 +135,51 @@ function getChecksAggregations(?int $userId, string $dateFrom, string $dateTo): 
     );
     $stmt->execute($params);
     return $stmt->fetch(PDO::FETCH_ASSOC);
-    }
-    
-    //For admin dashboard
-    function getOrdersByFilters(?int $userId, string $dateFrom, string $dateTo): array {
-        $db = db();
+}
+
+//For admin dashboard
+function getOrdersByFilters(?int $userId, string $dateFrom, string $dateTo, $page = 1, $perPage = 10): array
+{
+    $db = db();
     $where  = ["o.status != 'canceled'"];
     $params = [];
-    if ($userId !== null) { $where[] = 'o.user_id = ?';           $params[] = $userId;   }
-    if ($dateFrom !== '') { $where[] = 'DATE(o.created_at) >= ?'; $params[] = $dateFrom; }
-    if ($dateTo   !== '') { $where[] = 'DATE(o.created_at) <= ?'; $params[] = $dateTo;   }
-    $stmt = $db->prepare(
+    if ($userId !== null) {
+        $where[] = 'o.user_id = ?';
+        $params[] = $userId;
+    }
+    if ($dateFrom !== '') {
+        $where[] = 'DATE(o.created_at) >= ?';
+        $params[] = $dateFrom;
+    }
+    if ($dateTo   !== '') {
+        $where[] = 'DATE(o.created_at) <= ?';
+        $params[] = $dateTo;
+    }
+    $stmt =
         "SELECT o.id, o.status, o.total_amount, o.room_snapshot, o.created_at,
                 u.name AS user_name
          FROM orders o
          LEFT JOIN users u ON o.user_id = u.id
          WHERE " . implode(' AND ', $where) . "
-         ORDER BY o.created_at DESC"
-         );
-         $stmt->execute($params);
-         return $stmt->fetchAll(PDO::FETCH_ASSOC);
-     }
+         ORDER BY o.created_at DESC";
+
+    return paginate($stmt, $page, $perPage, $params);
+}
 
 
 
 
 
 
-     
-     // In Customre Dashboard
-    
+
+// In Customre Dashboard
+
 function createCustomerOrder(int $userId, string $room, string $note, array $items): int
 {
     return createManualOrder($userId, $room, $note, $items);
 }
 
-function getCustomerOrders(int $userId, string $dateFrom, string $dateTo): array
+function getCustomerOrders(int $userId, string $dateFrom, string $dateTo, int $page = 1, int $perPage = 10): array
 {
     $db = db();
 
@@ -174,24 +196,24 @@ function getCustomerOrders(int $userId, string $dateFrom, string $dateTo): array
         $params[] = $dateTo;
     }
 
-    $stmt = $db->prepare("
-        SELECT 
-            o.id, 
-            o.status, 
-            o.total_amount, 
-            o.room_snapshot, 
-            o.notes, 
+    $query = "
+        SELECT
+            o.id,
+            o.status,
+            o.total_amount,
+            o.room_snapshot,
+            o.notes,
             o.created_at
         FROM orders o
         WHERE " . implode(' AND ', $where) . "
         ORDER BY o.created_at DESC
-    ");
+    ";
 
-    $stmt->execute($params);
-    $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $paginated = paginate($query, $page, $perPage, $params);
+    $orders = $paginated['data'];
 
     if (empty($orders)) {
-        return [];
+        return $paginated;
     }
 
     $ids = implode(',', array_map('intval', array_column($orders, 'id')));
@@ -218,7 +240,9 @@ function getCustomerOrders(int $userId, string $dateFrom, string $dateTo): array
 
     unset($order);
 
-    return $orders;
+    $paginated['data'] = $orders;
+
+    return $paginated;
 }
 
 function getCustomerInsights(int $userId): array

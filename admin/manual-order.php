@@ -2,55 +2,60 @@
 session_start();
 
 if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'admin') {
-    header('Location: ../index.php');
-    exit;
+  header('Location: ../index.php');
+  exit;
 }
 
 require_once __DIR__ . '/../controllers/Order.php';
 require_once __DIR__ . '/../controllers/User.php';
 require_once __DIR__ . '/../controllers/Product.php';
 require_once __DIR__ . '/../controllers/User.php';
+
+$productController = new ProductController();
 // Room options from orders.room_snapshot enum
-$roomOptions = ['100','200','300','400','500','600','700','800','900','1000'];
+$roomOptions = ['100', '200', '300', '400', '500', '600', '700', '800', '900', '1000'];
 
 // Load customer users
-$userController = new UserController();
-$customerUsers = $userController->index();
+$customerUsers = getCustomerUsers();
 
 $successMessage = null;
 $errorMessage   = null;
 
 // Handle order creation
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_order'])) {
-    $userId = (int)($_POST['user_id'] ?? 0);
-    $room   = $_POST['room'] ?? '';
-    $note   = trim($_POST['note'] ?? '');
-    $qtys   = $_POST['qty'] ?? [];
+  $userId = (int)($_POST['user_id'] ?? 0);
+  $room   = $_POST['room'] ?? '';
+  $note   = trim($_POST['note'] ?? '');
+  $qtys   = $_POST['qty'] ?? [];
 
-    $items = [];
-    foreach ($qtys as $productId => $qty) {
-        if ((int)$qty > 0) {
-            $items[] = ['product_id' => (int)$productId, 'qty' => (int)$qty];
-        }
+  $items = [];
+  foreach ($qtys as $productId => $qty) {
+    if ((int)$qty > 0) {
+      $items[] = ['product_id' => (int)$productId, 'qty' => (int)$qty];
     }
+  }
 
-    if (!$userId) {
-        $errorMessage = 'Please select a user.';
-    } elseif (empty($items)) {
-        $errorMessage = 'Select at least one product first.';
-    } else {
-        try {
-            createManualOrder($userId, $room, $note, $items);
-            $successMessage = 'Manual order assigned to user account.';
-        } catch (\Throwable $e) {
-            $errorMessage = 'Failed to create order: ' . $e->getMessage();
-        }
+  if (!$userId) {
+    $errorMessage = 'Please select a user.';
+  } elseif (empty($items)) {
+    $errorMessage = 'Select at least one product first.';
+  } else {
+    try {
+      createManualOrder($userId, $room, $note, $items);
+      $successMessage = 'Manual order assigned to user account.';
+    } catch (\Throwable $e) {
+      $errorMessage = 'Failed to create order: ' . $e->getMessage();
     }
+  }
 }
 
+$page = (int)($_POST['page'] ?? 1);
 // Search query
 $searchQuery = trim($_POST['product_search'] ?? '');
-$products = searchProducts($searchQuery);
+$data = searchProducts($searchQuery, $page, 5);
+$products = $data['data'];
+$totalPages = $data['totalPages'];
+
 
 // Preserve submitted quantities across render (after search or error)
 $submittedQtys = $_POST['qty'] ?? [];
@@ -144,8 +149,10 @@ require __DIR__ . '/../includes/page-start.php';
                     data-product-name="<?= htmlspecialchars($product['name'], ENT_QUOTES) ?>"
                     data-product-price="<?= (float)$product['price'] ?>">
                     <div class="flex gap-4">
-                      <?php if ($product['image_path']): ?>
-                        <img src="<?= htmlspecialchars($product['image_path']) ?>" alt="<?= htmlspecialchars($product['name']) ?>" class="h-20 w-20 rounded-2xl object-cover" />
+                      <?php if (!empty($product['image_path'])): ?>
+                        <img src="../<?= htmlspecialchars($product['image_path']) ?>" alt="<?= htmlspecialchars($product['name']) ?>" class="h-20 w-20 rounded object-cover">
+                      <?php else: ?>
+                        <div class="flex h-20 w-20 items-center justify-center rounded bg-slate-200 text-sm text-slate-500">No image</div>
                       <?php endif; ?>
                       <div class="flex-1">
                         <div class="flex items-start justify-between gap-3">
@@ -165,24 +172,33 @@ require __DIR__ . '/../includes/page-start.php';
                     </div>
                   </article>
                 <?php endforeach; ?>
-              <?php endif; ?>
-            </div>
+                <?php endif; ?>
+              </div>
+              <div class="mt-4 flex gap-2">
+                <?php for ($i = 1; $i <= $totalPages; $i++): ?>
+                  <button
+                    type="submit" name="page" value="<?= $i ?>"
+                    class="px-3 py-1 rounded border <?= $i == $page ? 'bg-slate-900 text-white' : 'bg-white'; ?>">
+                    <?= $i ?>
+                  </button>
+                <?php endfor; ?>
+              </div>
 
             <!-- Cart summary -->
             <?php
-              $cartTotal = 0.0;
-              $cartLines = [];
-              foreach ($submittedQtys as $pid => $qty) {
-                  if ((int)$qty <= 0) continue;
-                  foreach ($products as $p) {
-                      if ((int)$p['id'] === (int)$pid) {
-                          $lineTotal = (float)$p['price'] * (int)$qty;
-                          $cartTotal += $lineTotal;
-                          $cartLines[] = ['name' => $p['name'], 'qty' => (int)$qty, 'price' => (float)$p['price'], 'total' => $lineTotal];
-                          break;
-                      }
-                  }
+            $cartTotal = 0.0;
+            $cartLines = [];
+            foreach ($submittedQtys as $pid => $qty) {
+              if ((int)$qty <= 0) continue;
+              foreach ($products as $p) {
+                if ((int)$p['id'] === (int)$pid) {
+                  $lineTotal = (float)$p['price'] * (int)$qty;
+                  $cartTotal += $lineTotal;
+                  $cartLines[] = ['name' => $p['name'], 'qty' => (int)$qty, 'price' => (float)$p['price'], 'total' => $lineTotal];
+                  break;
+                }
               }
+            }
             ?>
             <div class="mt-6 rounded-[1.5rem] bg-slate-900 p-5 text-white">
               <div id="js-cart-lines" class="space-y-3">
