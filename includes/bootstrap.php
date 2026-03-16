@@ -57,3 +57,25 @@ if (!function_exists('is_active_page')) {
         return $currentPage === $expectedPage ? 'bg-slate-900 text-white shadow-soft' : 'bg-slate-100 text-slate-700 hover:bg-slate-200';
     }
 }
+
+
+if (!function_exists('paginate')) {
+    function paginate(string $query, int $page = 1, int $perPage = 10, array $params = []): array
+    {
+        $db = db();
+        $offset = ($page - 1) * $perPage;
+
+        $stmt = $db->prepare($query . " LIMIT ? OFFSET ?");
+        $stmt->execute(array_merge($params, [$perPage, $offset]));
+        $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $countStmt = $db->prepare("SELECT COUNT(*) FROM ($query) as t");
+        $countStmt->execute($params);
+        $total = $countStmt->fetchColumn();
+
+        return [
+            'data'       => $data,
+            'totalPages' => (int) ceil($total / $perPage),
+        ];
+    }
+}

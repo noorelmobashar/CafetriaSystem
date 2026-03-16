@@ -2,15 +2,20 @@
 session_start();
 
 if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'admin') {
-    header('Location: ../index.php');
-    exit;
+  header('Location: ../index.php');
+  exit;
 }
 
 require_once __DIR__ . '/../includes/bootstrap.php';
 require_once __DIR__ . '/../controllers/User.php';
 
+$page = (int) ($_GET['page'] ?? 1);
+
 $userController = new UserController();
-$users = $userController->index('customer');
+$data = $userController->index($page, 5);
+$users = $data['data'];
+$totalPages = $data['totalPages'];
+
 
 $successMessage = $_SESSION['success_message'] ?? null;
 $errorMessage = $_SESSION['error_message'] ?? null;
@@ -40,7 +45,10 @@ require __DIR__ . '/../includes/page-start.php';
 
     <section class="rounded-[2rem] border border-white/70 bg-white/85 p-5 shadow-soft backdrop-blur md:p-6">
       <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div><p class="text-sm font-semibold uppercase tracking-[0.25em] text-brand-600">Employee base</p><h2 class="mt-2 text-2xl font-bold text-slate-900">Users</h2></div>
+        <div>
+          <p class="text-sm font-semibold uppercase tracking-[0.25em] text-brand-600">Employee base</p>
+          <h2 class="mt-2 text-2xl font-bold text-slate-900">Users</h2>
+        </div>
         <a href="create-user.php" class="rounded-2xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800">Add user</a>
       </div>
 
@@ -86,6 +94,15 @@ require __DIR__ . '/../includes/page-start.php';
               <?php endif; ?>
             </tbody>
           </table>
+          <div class="mt-4 flex gap-2">
+            <?php for ($i = 1; $i <= $totalPages; $i++): ?>
+              <a
+                href="?page=<?php echo $i; ?>"
+                class="px-3 py-1 rounded border <?php echo $i == $page ? 'bg-slate-900 text-white' : 'bg-white'; ?>">
+                <?php echo $i; ?>
+              </a>
+            <?php endfor; ?>
+          </div>
         </div>
       </div>
     </section>

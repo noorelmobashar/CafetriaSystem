@@ -142,3 +142,65 @@ class ProductController
     }
 }
 
+// ── Procedural helpers (used by admin/customer pages with pagination) ──────────
+
+function searchProducts(string $query, int $page = 1, int $perPage = 10): array
+{
+    $like = '%' . $query . '%';
+    $stmt = "
+        SELECT p.id, p.name, p.price, p.image_path, c.name AS category
+        FROM products p
+        LEFT JOIN categories c ON p.category_id = c.id
+        WHERE p.available = 1
+        AND (? = '' OR p.name LIKE ? OR c.name LIKE ?)
+        ORDER BY c.name, p.name
+    ";
+    return paginate($stmt, $page, $perPage, [$query, $like, $like]);
+}
+
+
+
+function getProducts(int $page = 1, int $perPage = 10): array
+{
+    $query = "
+        SELECT p.*, c.name AS category
+        FROM products p
+        LEFT JOIN categories c ON p.category_id = c.id
+        ORDER BY c.name, p.name
+    ";
+    return paginate($query, $page, $perPage);
+}
+
+function getProduct(int $id): ?array
+{
+    $stmt = db()->prepare("SELECT * FROM products WHERE id = ?");
+    $stmt->execute([$id]);
+    return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
+}
+
+function createProduct(string $name, float $price, ?int $categoryId, ?string $imagePath, bool $available = true): bool
+{
+    $stmt = db()->prepare("
+        INSERT INTO products (name, price, category_id, image_path, available, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, NOW(), NOW())
+    ");
+    $stmt->execute([$name, $price, $categoryId, $imagePath, $available]);
+    return $stmt->rowCount() > 0;
+}
+
+function deleteProduct(int $id): bool
+{
+    $stmt = db()->prepare("DELETE FROM products WHERE id = ?");
+    $stmt->execute([$id]);
+    return $stmt->rowCount() > 0;
+}
+
+function updateProduct(int $id, array $data): bool
+{
+    $stmt = db()->prepare("
+        UPDATE products
+        SET name = ?, price = ?, category_id = ?, image_path = ?, available = ?, updated_at = NOW()
+        WHERE id = ?
+    ");
+    return $stmt->execute([$data['name'], $data['price'], $data['category_id'], $data['image_path'], $data['available'], $id]);
+}

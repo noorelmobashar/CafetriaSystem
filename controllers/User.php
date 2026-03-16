@@ -9,10 +9,10 @@ function getCustomerUsers(): array {
 
 class UserController {
 
-    public function index(): array {
+    public function index($page = 1 , $perPage = 10): array {
 
-        $stmt = db()->query("SELECT id, name, email, role, profile_pic FROM users WHERE role = 'customer' ORDER BY name");
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $stmt = "SELECT id, name, email, role, profile_pic FROM users WHERE role = 'customer' ORDER BY name";
+        return paginate($stmt, $page, $perPage);
     }
 
     public function show(int $id): ?array {
