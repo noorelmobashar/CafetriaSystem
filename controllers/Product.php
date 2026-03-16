@@ -1,29 +1,44 @@
 <?php
-    function searchProducts(string $query): array {
+    function searchProducts(string $query , int $page = 1, int $perPage = 10): array {
         $db = db();
         $like = '%' . $query . '%';
-        $stmt = $db->prepare("
+        $stmt ="
             SELECT p.id, p.name, p.price, p.image_path, c.name AS category
             FROM products p
             LEFT JOIN categories c ON p.category_id = c.id
             WHERE p.available = 1
             AND (? = '' OR p.name LIKE ? OR c.name LIKE ?)
             ORDER BY c.name, p.name
-        ");
-        $stmt->execute([$query, $like, $like]);
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        ";
+
+        return paginate($stmt, $page, $perPage , [$query, $like, $like]);
+      
 }
 
-function getProducts(): array {
-    $db = db();
-    $stmt = $db->prepare("
+
+//use paginate
+// function getProducts(): array {
+//     $db = db();
+//     $stmt = $db->prepare("
+//         SELECT p.*, c.name AS category
+//         FROM products p
+//         LEFT JOIN categories c ON p.category_id = c.id
+//         ORDER BY c.name, p.name
+//     ");
+//     $stmt->execute();
+//     return $stmt->fetchAll(PDO::FETCH_ASSOC);
+// }
+
+function getProducts($page = 1, $perPage = 10)
+{
+    $query = "
         SELECT p.*, c.name AS category
         FROM products p
         LEFT JOIN categories c ON p.category_id = c.id
         ORDER BY c.name, p.name
-    ");
-    $stmt->execute();
-    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    ";
+
+    return paginate($query, $page, $perPage);
 }
 
 function getProduct(int $id): ?array {

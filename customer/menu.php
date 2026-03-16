@@ -37,7 +37,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_order'])) {
     }
 }
 
-$products = searchProducts('');
+$page = $_GET['page'] ?? 1;
+$data = searchProducts('', $page, 5);
+$products = $data['data'];
+$totalPages = $data['totalPages'];
+
+
 $insights = getCustomerInsights($userId);
 
 $pageTitle = 'Cafetria System | Customer Menu';
@@ -140,8 +145,18 @@ require __DIR__ . '/../includes/page-start.php';
               <?php endif; ?>
             </div>
           </div>
+            <div class="mt-4 flex gap-2">
+            <?php for ($i = 1; $i <= $totalPages; $i++): ?>
+              <a
+                href="?page=<?php echo $i; ?>"
+                class="px-3 py-1 rounded border <?php echo $i == $page ? 'bg-slate-900 text-white' : 'bg-white'; ?>">
+                <?php echo $i; ?>
+              </a>
+            <?php endfor; ?>
+          </div>
         </div>
 
+        
         <!-- Right: Cart + insights -->
         <aside class="space-y-6">
           <div class="rounded-[2rem] border border-white/70 bg-slate-900 p-5 text-white shadow-soft md:p-6">
@@ -171,8 +186,10 @@ require __DIR__ . '/../includes/page-start.php';
               </div>
             </div>
           </div>
+          
         </aside>
 
+        
       </section>
     </form>
   </div>
