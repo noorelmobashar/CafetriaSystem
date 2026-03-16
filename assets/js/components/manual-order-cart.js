@@ -59,7 +59,7 @@ function updateCart() {
 
 // Real-time search functionality
 let searchTimeout;
-function performRealTimeSearch(query) {
+function performRealTimeSearch(query, page = 1) {
   const searchInput = document.querySelector('input[name="product_search"]');
   const productsGrid = document.getElementById('products-grid');
   
@@ -69,11 +69,11 @@ function performRealTimeSearch(query) {
   productsGrid.innerHTML = '<div class="md:col-span-2 rounded-[1.75rem] border border-dashed border-slate-300 bg-slate-50 p-8 text-center text-sm text-slate-500">Searching...</div>';
 
   // Fetch search results via AJAX
-  fetch(`../admin/ajax-search-products.php?q=${encodeURIComponent(query)}`)
+  fetch(`../admin/ajax-search-products.php?q=${encodeURIComponent(query)}&page=${page}`)
     .then(response => response.json())
     .then(data => {
       if (data.success) {
-        renderProducts(data.products, query);
+        renderProducts(data.products, query, data.totalPages, data.currentPage);
       } else {
         productsGrid.innerHTML = '<div class="md:col-span-2 rounded-[1.75rem] border border-dashed border-slate-300 bg-slate-50 p-8 text-center text-sm text-red-500">Error loading products.</div>';
       }
@@ -84,7 +84,7 @@ function performRealTimeSearch(query) {
     });
 }
 
-function renderProducts(products, searchQuery) {
+function renderProducts(products, searchQuery, totalPages, currentPage) {
   const productsGrid = document.getElementById('products-grid');
   if (!productsGrid) return;
 
@@ -100,8 +100,8 @@ function renderProducts(products, searchQuery) {
       data-product-price="${product.price}">
       <div class="flex gap-4">
         ${product.image_path ? 
-          `<img src="${htmlspecialchars(product.image_path)}" alt="${htmlspecialchars(product.name)}" class="h-20 w-20 rounded-2xl object-cover" />` : 
-          ''
+          `<img src="../${htmlspecialchars(product.image_path)}" alt="${htmlspecialchars(product.name)}" class="h-20 w-20 rounded object-cover" />` : 
+          '<div class="flex h-20 w-20 items-center justify-center rounded bg-slate-200 text-sm text-slate-500">No image</div>'
         }
         <div class="flex-1">
           <div class="flex items-start justify-between gap-3">
@@ -122,7 +122,29 @@ function renderProducts(products, searchQuery) {
     </article>
   `).join('');
 
-  productsGrid.innerHTML = productsHTML;
+  // Generate pagination HTML
+  let paginationHTML = '';
+  if (totalPages > 1) {
+    paginationHTML = `
+      <div class="mt-4 flex gap-2">
+        ${Array.from({length: totalPages}, (_, i) => i + 1).map(pageNum => `
+          <button
+            type="button"
+            onclick="performRealTimeSearch('${htmlspecialchars(searchQuery)}', ${pageNum})"
+            class="px-3 py-1 rounded border ${pageNum == currentPage ? 'bg-slate-900 text-white' : 'bg-white'}">
+            ${pageNum}
+          </button>
+        `).join('')}
+      </div>
+    `;
+  }
+
+  productsGrid.innerHTML = `
+    <div class="grid gap-4 md:grid-cols-2">
+      ${productsHTML}
+    </div>
+    ${paginationHTML}
+  `;
   
   // Re-initialize cart update for new inputs
   updateCart();

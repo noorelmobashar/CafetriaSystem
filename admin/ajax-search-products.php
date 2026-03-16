@@ -12,10 +12,15 @@ require_once __DIR__ . '/../controllers/Product.php';
 header('Content-Type: application/json');
 
 $query = trim($_GET['q'] ?? '');
-$products = searchProducts($query);
+$page = (int)($_GET['page'] ?? 1);
+$perPage = 5; // Match the perPage value from manual-order.php
+
+$data = searchProducts($query, $page, $perPage);
 
 echo json_encode([
     'success' => true,
-    'products' => $products
+    'products' => $data['data'],
+    'totalPages' => $data['totalPages'],
+    'currentPage' => $page
 ]);
 ?>

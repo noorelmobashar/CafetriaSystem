@@ -2,9 +2,9 @@
 
 CREATE TABLE `users` (
   `id` int AUTO_INCREMENT PRIMARY KEY,
-  `name` varchar(255),
-  `email` varchar(255),
-  `password_hash` varchar(255),
+  `name` varchar(255) NOT NULL,
+  `email` varchar(255) NOT NULL UNIQUE,
+  `password_hash` varchar(255) NOT NULL,
   `role` ENUM('customer','admin') NOT NULL DEFAULT 'customer',
   `profile_pic` varchar(255),
   `created_at` datetime,
@@ -61,3 +61,9 @@ ALTER TABLE `order_items`
 
 ALTER TABLE `order_items`
   ADD FOREIGN KEY (`product_id`) REFERENCES `products` (`id`);
+  
+  
+  
+alter table users modify column email varchar(255) not null unique;
+alter table users modify column password_hash varchar(255) not null;
+alter table users modify column name varchar(255) not null;  
