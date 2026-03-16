@@ -7,6 +7,8 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'customer') {
 require_once __DIR__ . '/../controllers/Order.php';
 require_once __DIR__ . '/../controllers/Product.php';
 
+$productController = new ProductController();
+
 $roomOptions = ['100','200','300','400','500','600','700','800','900','1000'];
 $userId = (int)$_SESSION['user_id'];
 
@@ -37,11 +39,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_order'])) {
     }
 }
 
-$page = $_GET['page'] ?? 1;
-$data = searchProducts('', $page, 5);
+$page = (int) ($_GET['page'] ?? 1);
+
+$data = getProducts($page , 6);
 $products = $data['data'];
 $totalPages = $data['totalPages'];
-
 
 $insights = getCustomerInsights($userId);
 
@@ -69,7 +71,7 @@ require __DIR__ . '/../includes/page-start.php';
 
     <form id="order-form" method="POST">
       <input type="hidden" name="create_order" value="1">
-      <section class="grid gap-6 xl:grid-cols-[1.3fr,0.7fr]">
+      <section class="grid gap-6 lg:grid-cols-[1.3fr,0.7fr] lg:items-start">
 
         <!-- Left: Menu -->
         <div class="space-y-6">
@@ -144,8 +146,7 @@ require __DIR__ . '/../includes/page-start.php';
                 <div id="menu-grid-empty" style="display:none" class="md:col-span-2 rounded-[1.75rem] border border-dashed border-slate-300 bg-slate-50 p-8 text-center text-sm text-slate-500">No products match your search.</div>
               <?php endif; ?>
             </div>
-          </div>
-            <div class="mt-4 flex gap-2">
+              <div class="mt-4 flex gap-2">
             <?php for ($i = 1; $i <= $totalPages; $i++): ?>
               <a
                 href="?page=<?php echo $i; ?>"
@@ -155,10 +156,10 @@ require __DIR__ . '/../includes/page-start.php';
             <?php endfor; ?>
           </div>
         </div>
+      </div>
 
-        
         <!-- Right: Cart + insights -->
-        <aside class="space-y-6">
+        <aside class="space-y-6 lg:sticky lg:top-6">
           <div class="rounded-[2rem] border border-white/70 bg-slate-900 p-5 text-white shadow-soft md:p-6">
             <p class="text-sm font-semibold uppercase tracking-[0.28em] text-slate-300">Current basket</p>
             <h2 class="mt-2 text-2xl font-bold">Order summary</h2>
@@ -188,8 +189,6 @@ require __DIR__ . '/../includes/page-start.php';
           </div>
           
         </aside>
-
-        
       </section>
     </form>
   </div>

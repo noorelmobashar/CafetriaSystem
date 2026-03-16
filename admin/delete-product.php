@@ -9,6 +9,8 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'admin') {
 require_once __DIR__ . '/../includes/bootstrap.php';
 require_once __DIR__ . '/../controllers/Product.php';
 
+$productController = new ProductController();
+
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     header('Location: products.php');
     exit;
@@ -23,7 +25,7 @@ if ($id <= 0) {
 }
 
 try {
-    $deleted = deleteProduct($id);
+    $deleted = $productController->destroy($id);
     $_SESSION['success_message'] = $deleted ? 'Product deleted successfully.' : 'Product not found.';
 } catch (Throwable $exception) {
     $_SESSION['error_message'] = 'Failed to delete product.';

@@ -14,6 +14,9 @@ $headerBadge = 'Administrator';
 $headerTitle = 'Manage products';
 $headerSubtitle = 'Keep the cafeteria catalog clean, visual, and easy to update.';
 require __DIR__ . '/../includes/page-start.php';
+require_once __DIR__ . '/../controllers/Product.php';
+
+$productController = new ProductController();
 
 $successMessage = $_SESSION['success_message'] ?? null;
 $errorMessage = $_SESSION['error_message'] ?? null;
@@ -51,10 +54,6 @@ unset($_SESSION['success_message'], $_SESSION['error_message']);
       // TODO 2: Ensure each product has what this table needs:
       // id, name, category (or category name), price, available, image_path.
 
-
-      require_once __DIR__ . '/../controllers/Product.php';
-
-      // $products = getProducts();
       $page = (int) ($_GET['page'] ?? 1);
       $result = getProducts($page, 5);
       $products = $result['data'];
