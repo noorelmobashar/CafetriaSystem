@@ -127,14 +127,13 @@ require __DIR__ . '/../includes/page-start.php';
               <div class="rounded-2xl bg-slate-100 px-4 py-2 text-sm text-slate-600">Assigned as Incoming</div>
             </div>
 
-            <div class="mt-4 flex gap-2">
-              <input name="product_search" type="search" placeholder="Search by product name or category"
+            <div class="mt-4">
+              <input name="product_search" type="search" placeholder="Search by product name or category (real-time)"
                 value="<?= htmlspecialchars($searchQuery) ?>"
                 class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-800 outline-none transition focus:border-brand-500 focus:ring-4 focus:ring-brand-100" />
-              <button type="submit" name="do_search" value="1" class="rounded-2xl bg-slate-100 px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-200">Search</button>
             </div>
 
-            <div class="mt-6 grid gap-4 md:grid-cols-2">
+            <div id="products-grid" class="mt-6 grid gap-4 md:grid-cols-2">
               <?php if (empty($products)): ?>
                 <div class="md:col-span-2 rounded-[1.75rem] border border-dashed border-slate-300 bg-slate-50 p-8 text-center text-sm text-slate-500">No products match your search.</div>
               <?php else: ?>

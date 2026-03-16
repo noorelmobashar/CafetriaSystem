@@ -2,6 +2,7 @@
  * manual-order-cart.js
  * Live-updates the cart summary and total whenever a product qty input changes.
  * Reads product metadata from data attributes on each <article> card.
+ * Also handles real-time product search functionality.
  */
 
 function formatCurrency(amount) {
@@ -56,10 +57,108 @@ function updateCart() {
   cartTotal.textContent = formatCurrency(total);
 }
 
+// Real-time search functionality
+let searchTimeout;
+function performRealTimeSearch(query) {
+  const searchInput = document.querySelector('input[name="product_search"]');
+  const productsGrid = document.getElementById('products-grid');
+  
+  if (!searchInput || !productsGrid) return;
+
+  // Show loading state
+  productsGrid.innerHTML = '<div class="md:col-span-2 rounded-[1.75rem] border border-dashed border-slate-300 bg-slate-50 p-8 text-center text-sm text-slate-500">Searching...</div>';
+
+  // Fetch search results via AJAX
+  fetch(`../admin/ajax-search-products.php?q=${encodeURIComponent(query)}`)
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        renderProducts(data.products, query);
+      } else {
+        productsGrid.innerHTML = '<div class="md:col-span-2 rounded-[1.75rem] border border-dashed border-slate-300 bg-slate-50 p-8 text-center text-sm text-red-500">Error loading products.</div>';
+      }
+    })
+    .catch(error => {
+      console.error('Search error:', error);
+      productsGrid.innerHTML = '<div class="md:col-span-2 rounded-[1.75rem] border border-dashed border-slate-300 bg-slate-50 p-8 text-center text-sm text-red-500">Error loading products.</div>';
+    });
+}
+
+function renderProducts(products, searchQuery) {
+  const productsGrid = document.getElementById('products-grid');
+  if (!productsGrid) return;
+
+  if (products.length === 0) {
+    productsGrid.innerHTML = '<div class="md:col-span-2 rounded-[1.75rem] border border-dashed border-slate-300 bg-slate-50 p-8 text-center text-sm text-slate-500">No products match your search.</div>';
+    return;
+  }
+
+  const productsHTML = products.map(product => `
+    <article class="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4"
+      data-product-id="${product.id}"
+      data-product-name="${htmlspecialchars(product.name)}"
+      data-product-price="${product.price}">
+      <div class="flex gap-4">
+        ${product.image_path ? 
+          `<img src="${htmlspecialchars(product.image_path)}" alt="${htmlspecialchars(product.name)}" class="h-20 w-20 rounded-2xl object-cover" />` : 
+          ''
+        }
+        <div class="flex-1">
+          <div class="flex items-start justify-between gap-3">
+            <div>
+              <p class="text-xs font-semibold uppercase tracking-[0.22em] text-slate-400">${htmlspecialchars(product.category || '')}</p>
+              <h3 class="mt-1 text-lg font-bold text-slate-900">${htmlspecialchars(product.name)}</h3>
+            </div>
+            <div class="rounded-2xl bg-white px-3 py-2 text-sm font-semibold text-slate-700">${formatCurrency(product.price)}</div>
+          </div>
+          <div class="mt-4">
+            <label class="text-xs text-slate-500 mb-1 block">Quantity</label>
+            <input type="number" name="qty[${product.id}]"
+              value="0" min="0"
+              class="w-24 rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-900 outline-none focus:border-brand-500 focus:ring-4 focus:ring-brand-100" />
+          </div>
+        </div>
+      </div>
+    </article>
+  `).join('');
+
+  productsGrid.innerHTML = productsHTML;
+  
+  // Re-initialize cart update for new inputs
+  updateCart();
+}
+
+// Helper function to escape HTML
+function htmlspecialchars(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
 // React to every keystroke / spinner change on any qty input
 document.addEventListener("input", (event) => {
   if (event.target.matches('input[name^="qty["]')) {
     updateCart();
+  }
+  
+  // Real-time search on product search input
+  if (event.target.matches('input[name="product_search"]')) {
+    clearTimeout(searchTimeout);
+    const query = event.target.value.trim();
+    
+    // Debounce search to avoid too many requests
+    searchTimeout = setTimeout(() => {
+      performRealTimeSearch(query);
+    }, 300); // Wait 300ms after user stops typing
+  }
+});
+
+// Prevent form submission when pressing Enter in search field
+document.addEventListener("keydown", (event) => {
+  if (event.target.matches('input[name="product_search"]') && event.key === 'Enter') {
+    event.preventDefault();
+    const query = event.target.value.trim();
+    performRealTimeSearch(query);
   }
 });
 
