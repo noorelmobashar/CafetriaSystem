@@ -1,34 +1,37 @@
 <?php
 session_start();
 if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'customer') {
-    header('Location: ../index.php');
-    exit;
+  header('Location: ../index.php');
+  exit;
 }
 require_once __DIR__ . '/../controllers/Order.php';
 
 $userId = (int)$_SESSION['user_id'];
-  
+
 $successMessage = null;
 $errorMessage   = null;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['cancel_order_id'])) {
-    $orderId = (int)$_POST['cancel_order_id'];
-    if (cancelCustomerOrder($orderId, $userId)) {
-        $successMessage = 'Order canceled successfully.';
-    } else {
-        $errorMessage = 'Could not cancel this order.';
-    }
+  $orderId = (int)$_POST['cancel_order_id'];
+  if (cancelCustomerOrder($orderId, $userId)) {
+    $successMessage = 'Order canceled successfully.';
+  } else {
+    $errorMessage = 'Could not cancel this order.';
+  }
 }
 
 $dateFrom = trim($_GET['date_from'] ?? '');
 $dateTo   = trim($_GET['date_to']   ?? '');
-$orders   = getCustomerOrders($userId, $dateFrom, $dateTo);
+$page = max(1, (int)($_GET['page'] ?? 1));
+$ordersData = getCustomerOrders($userId, $dateFrom, $dateTo, $page, 2);
+$orders = $ordersData['data'];
+$totalPages = $ordersData['totalPages'];
 
 $statusMeta = [
-    'incoming'         => ['label' => 'Incoming',        'pill' => 'status-incoming'],
-    'processing'       => ['label' => 'Processing',       'pill' => 'status-processing'],
-    'out for delivery' => ['label' => 'Out for Delivery', 'pill' => 'status-out-for-delivery'],
-    'done'             => ['label' => 'Done',             'pill' => 'status-done'],
+  'incoming'         => ['label' => 'Incoming',        'pill' => 'status-incoming'],
+  'processing'       => ['label' => 'Processing',       'pill' => 'status-processing'],
+  'out for delivery' => ['label' => 'Out for Delivery', 'pill' => 'status-out-for-delivery'],
+  'done'             => ['label' => 'Done',             'pill' => 'status-done'],
 ];
 
 $pageTitle = 'Cafetria System | My Orders';
@@ -127,6 +130,16 @@ require __DIR__ . '/../includes/page-start.php';
           <?php endforeach; ?>
         <?php endif; ?>
       </div>
+
+        <div class="mt-4 flex gap-2">
+            <?php for ($i = 1; $i <= $totalPages; $i++): ?>
+              <a
+                href="?page=<?php echo $i; ?>"
+                class="px-3 py-1 rounded border <?php echo $i == $page ? 'bg-slate-900 text-white' : 'bg-white'; ?>">
+                <?php echo $i; ?>
+              </a>
+            <?php endfor; ?>
+          </div>
     </section>
   </div>
 </main>

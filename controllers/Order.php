@@ -179,7 +179,7 @@ function createCustomerOrder(int $userId, string $room, string $note, array $ite
     return createManualOrder($userId, $room, $note, $items);
 }
 
-function getCustomerOrders(int $userId, string $dateFrom, string $dateTo): array
+function getCustomerOrders(int $userId, string $dateFrom, string $dateTo, int $page = 1, int $perPage = 10): array
 {
     $db = db();
 
@@ -196,24 +196,24 @@ function getCustomerOrders(int $userId, string $dateFrom, string $dateTo): array
         $params[] = $dateTo;
     }
 
-    $stmt = $db->prepare("
-        SELECT 
-            o.id, 
-            o.status, 
-            o.total_amount, 
-            o.room_snapshot, 
-            o.notes, 
+    $query = "
+        SELECT
+            o.id,
+            o.status,
+            o.total_amount,
+            o.room_snapshot,
+            o.notes,
             o.created_at
         FROM orders o
         WHERE " . implode(' AND ', $where) . "
         ORDER BY o.created_at DESC
-    ");
+    ";
 
-    $stmt->execute($params);
-    $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $paginated = paginate($query, $page, $perPage, $params);
+    $orders = $paginated['data'];
 
     if (empty($orders)) {
-        return [];
+        return $paginated;
     }
 
     $ids = implode(',', array_map('intval', array_column($orders, 'id')));
@@ -240,7 +240,9 @@ function getCustomerOrders(int $userId, string $dateFrom, string $dateTo): array
 
     unset($order);
 
-    return $orders;
+    $paginated['data'] = $orders;
+
+    return $paginated;
 }
 
 function getCustomerInsights(int $userId): array
