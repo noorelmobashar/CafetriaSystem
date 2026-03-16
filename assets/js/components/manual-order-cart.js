@@ -65,3 +65,23 @@ document.addEventListener("input", (event) => {
 
 // Run once on load to reflect any server-preserved values
 updateCart();
+
+// ── Live product search (client-side filter) ─────────────────────────────────
+
+document.getElementById("product-search-input")?.addEventListener("input", (event) => {
+  const query = event.target.value.trim().toLowerCase();
+  const articles = document.querySelectorAll("#product-grid article[data-product-id]");
+  let visible = 0;
+
+  articles.forEach((article) => {
+    const name = (article.dataset.productName ?? "").toLowerCase();
+    const category = (article.dataset.productCategory ?? "").toLowerCase();
+    const matches = !query || name.includes(query) || category.includes(query);
+    article.style.display = matches ? "" : "none";
+    if (matches) visible++;
+  });
+
+  const emptyState = document.getElementById("product-grid-empty");
+  if (emptyState)
+    emptyState.style.display = visible === 0 && articles.length > 0 ? "" : "none";
+});

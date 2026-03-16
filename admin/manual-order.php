@@ -48,9 +48,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_order'])) {
     }
 }
 
-// Search query
-$searchQuery = trim($_POST['product_search'] ?? '');
-$products = searchProducts($searchQuery);
+$products = searchProducts('');
 
 // Preserve submitted quantities across render (after search or error)
 $submittedQtys = $_POST['qty'] ?? [];
@@ -127,23 +125,22 @@ require __DIR__ . '/../includes/page-start.php';
               <div class="rounded-2xl bg-slate-100 px-4 py-2 text-sm text-slate-600">Assigned as Incoming</div>
             </div>
 
-            <div class="mt-4 flex gap-2">
-              <input name="product_search" type="search" placeholder="Search by product name or category"
-                value="<?= htmlspecialchars($searchQuery) ?>"
+            <div class="mt-4">
+              <input id="product-search-input" type="search" placeholder="Search by product name or category"
                 class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-800 outline-none transition focus:border-brand-500 focus:ring-4 focus:ring-brand-100" />
-              <button type="submit" name="do_search" value="1" class="rounded-2xl bg-slate-100 px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-200">Search</button>
             </div>
 
-            <div class="mt-6 grid gap-4 md:grid-cols-2">
+            <div id="product-grid" class="mt-6 grid gap-4 md:grid-cols-2">
               <?php if (empty($products)): ?>
-                <div class="md:col-span-2 rounded-[1.75rem] border border-dashed border-slate-300 bg-slate-50 p-8 text-center text-sm text-slate-500">No products match your search.</div>
+                <div class="md:col-span-2 rounded-[1.75rem] border border-dashed border-slate-300 bg-slate-50 p-8 text-center text-sm text-slate-500">No products available.</div>
               <?php else: ?>
                 <?php foreach ($products as $product): ?>
                   <?php $qty = (int)($submittedQtys[$product['id']] ?? 0); ?>
                   <article class="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4"
                     data-product-id="<?= (int)$product['id'] ?>"
                     data-product-name="<?= htmlspecialchars($product['name'], ENT_QUOTES) ?>"
-                    data-product-price="<?= (float)$product['price'] ?>">
+                    data-product-price="<?= (float)$product['price'] ?>"
+                    data-product-category="<?= htmlspecialchars($product['category'] ?? '', ENT_QUOTES) ?>">
                     <div class="flex gap-4">
                       <?php if ($product['image_path']): ?>
                         <img src="<?= htmlspecialchars($product['image_path']) ?>" alt="<?= htmlspecialchars($product['name']) ?>" class="h-20 w-20 rounded-2xl object-cover" />
@@ -166,8 +163,10 @@ require __DIR__ . '/../includes/page-start.php';
                     </div>
                   </article>
                 <?php endforeach; ?>
+                <div id="product-grid-empty" style="display:none" class="md:col-span-2 rounded-[1.75rem] border border-dashed border-slate-300 bg-slate-50 p-8 text-center text-sm text-slate-500">No products match your search.</div>
               <?php endif; ?>
             </div>
+
 
             <!-- Cart summary -->
             <?php
