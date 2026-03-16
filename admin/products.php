@@ -84,7 +84,13 @@ unset($_SESSION['success_message'], $_SESSION['error_message']);
                     <td class="px-4 py-3"><?php echo htmlspecialchars($product['category']); ?></td>
                     <td class="px-4 py-3"><?php echo htmlspecialchars($product['price']); ?> LE</td>
                     <td class="px-4 py-3"><?php echo $product['available'] ? 'Yes' : 'No'; ?></td>
-                    <td class="px-4 py-3"><?php echo $product['image_path'] ? '<img src="' . $product['image_path'] . '" alt="' . $product['name'] . '">' : 'No image'; ?></td>
+                    <td class="px-4 py-3">
+                      <?php if (!empty($product['image_path'])): ?>
+                        <img src="../<?php echo htmlspecialchars($product['image_path']); ?>" alt="<?php echo htmlspecialchars($product['name']); ?>" class="h-12 w-12 rounded object-cover">
+                      <?php else: ?>
+                        <span class="text-sm text-slate-500">No image</span>
+                      <?php endif; ?>
+                    </td>
                     <td class="px-4 py-3">
                       <div class="flex flex-wrap gap-2">
                         <a

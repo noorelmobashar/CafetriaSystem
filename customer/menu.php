@@ -114,8 +114,10 @@ require __DIR__ . '/../includes/page-start.php';
                     data-product-price="<?= (float)$product['price'] ?>"
                     data-product-category="<?= htmlspecialchars($product['category'] ?? '', ENT_QUOTES) ?>">
                     <div class="flex gap-4">
-                      <?php if ($product['image_path']): ?>
-                        <img src="<?= htmlspecialchars($product['image_path']) ?>" alt="<?= htmlspecialchars($product['name']) ?>" class="h-24 w-24 rounded-[1.25rem] object-cover shadow-soft" />
+                      <?php if (!empty($product['image_path'])): ?>
+                        <img src="../<?= htmlspecialchars($product['image_path']) ?>" alt="<?= htmlspecialchars($product['name']) ?>" class="h-20 w-20 rounded object-cover">
+                      <?php else: ?>
+                        <div class="flex h-20 w-20 items-center justify-center rounded bg-slate-200 text-sm text-slate-500">No image</div>
                       <?php endif; ?>
                       <div class="flex-1">
                         <div class="flex items-start justify-between gap-3">
