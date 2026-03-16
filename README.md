@@ -84,8 +84,7 @@ Create a MySQL database that matches `DB_DATABASE` in your `.env`.
 
 ### 4. Import the project schema
 
-Import your SQL schema into the database before seeding.  
-If your team keeps the schema in phpMyAdmin or another local export, import that file into the database first.
+Import ``` Cafetria.sql ``` SQL schema into the database before seeding.  
 
 ### 5. Seed the demo data
 
