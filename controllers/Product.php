@@ -160,19 +160,6 @@ function searchProductsAll(string $query = ''): array
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
-// function searchProducts(string $query, int $page = 1, int $perPage = 10): array
-// {
-//     $like = '%' . $query . '%';
-//     $stmt = "
-//         SELECT p.id, p.name, p.price, p.image_path, c.name AS category
-//         FROM products p
-//         LEFT JOIN categories c ON p.category_id = c.id
-//         WHERE p.available = 1
-//         AND (? = '' OR p.name LIKE ? OR c.name LIKE ?)
-//         ORDER BY c.name, p.name
-//     ";
-//     return paginate($stmt, $page, $perPage, [$query, $like, $like]);
-// }
 
 
 function getProducts(int $page = 1, int $perPage = 10): array
