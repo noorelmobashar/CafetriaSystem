@@ -175,7 +175,6 @@ function searchProductsAll(string $query = ''): array
 // }
 
 
-
 function getProducts(int $page = 1, int $perPage = 10): array
 {
     $query = "
