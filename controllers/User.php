@@ -9,6 +9,18 @@ function getCustomerUsers(): array {
 
 class UserController {
 
+    public function search($query, $page = 1, $perPage = 10): array {
+        $stmt = "
+            SELECT id, name, email, role, profile_pic
+            FROM users
+            WHERE role = 'customer'
+            AND name LIKE ?
+            ORDER BY name
+        ";
+        $like = "%$query%";
+        return paginate($stmt, $page, $perPage, [$like]);
+    }
+
     public function index($page = 1 , $perPage = 10): array {
 
         $stmt = "SELECT id, name, email, role, profile_pic FROM users WHERE role = 'customer' ORDER BY name";

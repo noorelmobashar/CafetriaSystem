@@ -12,7 +12,10 @@ require_once __DIR__ . '/../controllers/User.php';
 $page = (int) ($_GET['page'] ?? 1);
 
 $userController = new UserController();
-$data = $userController->index($page, 5);
+$searchQuery = trim((string) ($_GET['search'] ?? ''));
+$data = $searchQuery === ''
+  ? $userController->index($page, 5)
+  : $userController->search($searchQuery, $page, 5);
 $users = $data['data'];
 $totalPages = $data['totalPages'];
 
@@ -51,7 +54,11 @@ require __DIR__ . '/../includes/page-start.php';
         </div>
         <a href="create-user.php" class="rounded-2xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800">Add user</a>
       </div>
-
+      <form class="mt-4" onsubmit="return false;">
+        <input id="user-search-input" name="search" type="search" placeholder="Search by name or email"
+          value="<?= htmlspecialchars($searchQuery) ?>"
+          class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-800 outline-none transition focus:border-brand-500 focus:ring-4 focus:ring-brand-100" />
+      </form>
       <div class="mt-6 overflow-hidden rounded-[1.5rem] border border-slate-200">
         <div class="overflow-x-auto">
           <table class="min-w-full divide-y divide-slate-200 text-sm">
@@ -63,7 +70,7 @@ require __DIR__ . '/../includes/page-start.php';
                 <th class="px-4 py-3 font-semibold">Actions</th>
               </tr>
             </thead>
-            <tbody class="divide-y divide-slate-100 bg-white text-slate-700">
+            <tbody id="users-table-body" class="divide-y divide-slate-100 bg-white text-slate-700">
               <?php if (!empty($users)): ?>
                 <?php foreach ($users as $user): ?>
                   <tr>
@@ -94,10 +101,10 @@ require __DIR__ . '/../includes/page-start.php';
               <?php endif; ?>
             </tbody>
           </table>
-          <div class="mt-4 flex gap-2">
+          <div id="users-pagination" class="mt-4 flex gap-2">
             <?php for ($i = 1; $i <= $totalPages; $i++): ?>
               <a
-                href="?page=<?php echo $i; ?>"
+                href="?page=<?php echo $i; ?><?= $searchQuery !== '' ? '&search=' . urlencode($searchQuery) : ''; ?>"
                 class="px-3 py-1 rounded border <?php echo $i == $page ? 'bg-slate-900 text-white' : 'bg-white'; ?>">
                 <?php echo $i; ?>
               </a>
@@ -108,4 +115,5 @@ require __DIR__ . '/../includes/page-start.php';
     </section>
   </div>
 </main>
+<script src="../assets/js/components/user-search.js"></script>
 <?php require __DIR__ . '/../includes/page-end.php'; ?>
