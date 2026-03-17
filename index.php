@@ -71,22 +71,6 @@ require __DIR__ . '/includes/page-start.php';
     <?php unset($_SESSION['error']); ?>
   <?php endif; ?>
 
-  <div>
-    <p class="mb-3 text-sm font-semibold text-slate-700">Login as</p>
-    <div class="grid grid-cols-2 gap-3">
-      <label class="role-card rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-left transition cursor-pointer">
-        <input type="radio" name="role" value="customer" checked class="hidden" />
-        <span class="block text-sm font-semibold">Customer</span>
-        <span class="mt-1 block text-xs text-slate-500">Employees placing orders</span>
-      </label>
-      <label class="role-card rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-left transition cursor-pointer">
-        <input type="radio" name="role" value="admin" class="hidden" />
-        <span class="block text-sm font-semibold">Admin</span>
-        <span class="mt-1 block text-xs text-slate-500">Manage products, users, and checks</span>
-      </label>
-    </div>
-  </div>
-
   <button type="submit" name="login" value="1" class="w-full rounded-2xl bg-slate-900 px-4 py-3.5 text-sm font-semibold text-white shadow-soft transition hover:-translate-y-0.5 hover:bg-slate-800">
     Access dashboard
   </button>
