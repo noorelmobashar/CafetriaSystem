@@ -144,18 +144,20 @@ class ProductController
 
 // ── Procedural helpers (used by admin/customer pages with pagination) ──────────
 
-function searchProducts(string $query, int $page = 1, int $perPage = 10): array
+function searchProductsAll(string $query = ''): array
 {
+    $db = db();
     $like = '%' . $query . '%';
-    $stmt = "
+    $stmt = $db->prepare("
         SELECT p.id, p.name, p.price, p.image_path, c.name AS category
         FROM products p
         LEFT JOIN categories c ON p.category_id = c.id
         WHERE p.available = 1
         AND (? = '' OR p.name LIKE ? OR c.name LIKE ?)
         ORDER BY c.name, p.name
-    ";
-    return paginate($stmt, $page, $perPage, [$query, $like, $like]);
+    ");
+    $stmt->execute([$query, $like, $like]);
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
 

@@ -7,8 +7,6 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'customer') {
 require_once __DIR__ . '/../controllers/Order.php';
 require_once __DIR__ . '/../controllers/Product.php';
 
-$productController = new ProductController();
-
 $roomOptions = ['100','200','300','400','500','600','700','800','900','1000'];
 $userId = (int)$_SESSION['user_id'];
 
@@ -39,11 +37,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_order'])) {
     }
 }
 
-$page = (int) ($_GET['page'] ?? 1);
-
-$data = getProducts($page , 6);
-$products = $data['data'];
-$totalPages = $data['totalPages'];
+$products = searchProductsAll('');
 
 $insights = getCustomerInsights($userId);
 
@@ -108,7 +102,7 @@ require __DIR__ . '/../includes/page-start.php';
                 <div class="md:col-span-2 rounded-[1.75rem] border border-dashed border-slate-300 bg-slate-50 p-8 text-center text-sm text-slate-500">No products available.</div>
               <?php else: ?>
                 <?php foreach ($products as $product): ?>
-                  <article class="card-hover rounded-[1.75rem] border border-slate-200 bg-white p-4"
+                  <article class="product-card card-hover rounded-[1.75rem] border border-slate-200 bg-white p-4"
                     data-product-id="<?= (int)$product['id'] ?>"
                     data-product-name="<?= htmlspecialchars($product['name'], ENT_QUOTES) ?>"
                     data-product-price="<?= (float)$product['price'] ?>"
@@ -116,8 +110,6 @@ require __DIR__ . '/../includes/page-start.php';
                     <div class="flex gap-4">
                       <?php if (!empty($product['image_path'])): ?>
                         <img src="../<?= htmlspecialchars($product['image_path']) ?>" alt="<?= htmlspecialchars($product['name']) ?>" class="h-20 w-20 rounded object-cover">
-                      <?php else: ?>
-                        <div class="flex h-20 w-20 items-center justify-center rounded bg-slate-200 text-sm text-slate-500">No image</div>
                       <?php endif; ?>
                       <div class="flex-1">
                         <div class="flex items-start justify-between gap-3">
@@ -148,15 +140,7 @@ require __DIR__ . '/../includes/page-start.php';
                 <div id="menu-grid-empty" style="display:none" class="md:col-span-2 rounded-[1.75rem] border border-dashed border-slate-300 bg-slate-50 p-8 text-center text-sm text-slate-500">No products match your search.</div>
               <?php endif; ?>
             </div>
-              <div class="mt-4 flex gap-2">
-            <?php for ($i = 1; $i <= $totalPages; $i++): ?>
-              <a
-                href="?page=<?php echo $i; ?>"
-                class="px-3 py-1 rounded border <?php echo $i == $page ? 'bg-slate-900 text-white' : 'bg-white'; ?>">
-                <?php echo $i; ?>
-              </a>
-            <?php endfor; ?>
-          </div>
+            <div id="menu-pagination" class="mt-4 flex gap-2"></div>
         </div>
       </div>
 

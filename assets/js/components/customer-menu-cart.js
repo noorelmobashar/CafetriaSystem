@@ -6,6 +6,8 @@
  */
 
 const cart = {}; // { [productId]: { qty, note } }
+const ITEMS_PER_PAGE = 6;
+let currentPage = 1;
 
 function formatCurrency(amount) {
   return (
@@ -73,20 +75,92 @@ function updateQtyDisplay(productId) {
   );
   const span = article?.querySelector("[data-qty-display]");
   if (span) span.textContent = String(qty);
-  
-  // Disable minus button when qty is 0
+
   const decreaseBtn = article?.querySelector('[data-action="decrease"]');
   if (decreaseBtn) {
     if (qty === 0) {
       decreaseBtn.disabled = true;
-      decreaseBtn.style.opacity = '0.5';
-      decreaseBtn.style.cursor = 'not-allowed';
+      decreaseBtn.style.opacity = "0.5";
+      decreaseBtn.style.cursor = "not-allowed";
     } else {
       decreaseBtn.disabled = false;
-      decreaseBtn.style.opacity = '1';
-      decreaseBtn.style.cursor = 'pointer';
+      decreaseBtn.style.opacity = "1";
+      decreaseBtn.style.cursor = "pointer";
     }
   }
+}
+
+const allCards = Array.from(
+  document.querySelectorAll("#menu-grid article[data-product-id]"),
+);
+const paginationContainer = document.getElementById("menu-pagination");
+const emptyState = document.getElementById("menu-grid-empty");
+const searchInput = document.getElementById("product-search");
+let filteredCards = [...allCards];
+
+function renderPagination(totalPages) {
+  if (!paginationContainer) return;
+
+  paginationContainer.innerHTML = "";
+  if (filteredCards.length === 0 || totalPages <= 1) return;
+
+  for (let i = 1; i <= totalPages; i += 1) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.textContent = String(i);
+    button.className =
+      "px-3 py-1 rounded border transition " +
+      (i === currentPage
+        ? "bg-slate-900 text-white"
+        : "bg-white text-slate-900 hover:bg-slate-100");
+
+    button.addEventListener("click", () => {
+      currentPage = i;
+      applyPagination();
+    });
+
+    paginationContainer.appendChild(button);
+  }
+}
+
+function applyPagination() {
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredCards.length / ITEMS_PER_PAGE),
+  );
+
+  if (currentPage > totalPages) {
+    currentPage = totalPages;
+  }
+
+  allCards.forEach((card) => {
+    card.style.display = "none";
+  });
+
+  const start = (currentPage - 1) * ITEMS_PER_PAGE;
+  const end = start + ITEMS_PER_PAGE;
+  filteredCards.slice(start, end).forEach((card) => {
+    card.style.display = "";
+  });
+
+  if (emptyState) {
+    emptyState.style.display =
+      filteredCards.length === 0 && allCards.length > 0 ? "" : "none";
+  }
+
+  renderPagination(totalPages);
+}
+
+function applySearch() {
+  const query = searchInput?.value.trim().toLowerCase() ?? "";
+  filteredCards = allCards.filter((article) => {
+    const name = (article.dataset.productName ?? "").toLowerCase();
+    const category = (article.dataset.productCategory ?? "").toLowerCase();
+    return !query || name.includes(query) || category.includes(query);
+  });
+
+  currentPage = 1;
+  applyPagination();
 }
 
 // +/- buttons
@@ -96,8 +170,9 @@ document.getElementById("menu-grid")?.addEventListener("click", (event) => {
   const productId = button.dataset.productId;
   if (!cart[productId]) cart[productId] = { qty: 0, note: "" };
   if (button.dataset.action === "increase") cart[productId].qty += 1;
-  if (button.dataset.action === "decrease")
+  if (button.dataset.action === "decrease") {
     cart[productId].qty = Math.max(0, cart[productId].qty - 1);
+  }
   updateQtyDisplay(productId);
   renderCartSidebar();
 });
@@ -112,35 +187,15 @@ document.getElementById("menu-grid")?.addEventListener("input", (event) => {
   renderCartSidebar();
 });
 
-// Room change → update sidebar label
+// Room change -> update sidebar label
 document
   .getElementById("room-select")
   ?.addEventListener("change", renderCartSidebar);
 
-// Client-side product search on PHP-rendered articles
+// Client-side product search + pagination
 document
   .getElementById("product-search")
-  ?.addEventListener("input", (event) => {
-    const query = event.target.value.trim().toLowerCase();
-    const articles = document.querySelectorAll(
-      "#menu-grid article[data-product-id]",
-    );
-    let visible = 0;
-
-    articles.forEach((article) => {
-      const name = (article.dataset.productName ?? "").toLowerCase();
-      const category = (article.dataset.productCategory ?? "").toLowerCase();
-      const matches =
-        !query || name.includes(query) || category.includes(query);
-      article.style.display = matches ? "" : "none";
-      if (matches) visible++;
-    });
-
-    const emptyState = document.getElementById("menu-grid-empty");
-    if (emptyState)
-      emptyState.style.display =
-        visible === 0 && articles.length > 0 ? "" : "none";
-  });
+  ?.addEventListener("input", applySearch);
 
 // Confirm order
 document.getElementById("place-order-btn")?.addEventListener("click", () => {
@@ -150,12 +205,11 @@ document.getElementById("place-order-btn")?.addEventListener("click", () => {
     const btn = document.getElementById("place-order-btn");
     const origText = btn.textContent;
     const origClass = btn.className;
-    
-    // Show error state with red background
-    btn.textContent = "❌ Add at least one product first";
+
+    btn.textContent = "Add at least one product first";
     btn.className = origClass + " bg-red-500 hover:bg-red-600";
     btn.disabled = true;
-    
+
     setTimeout(() => {
       btn.textContent = origText;
       btn.className = origClass;
@@ -191,4 +245,9 @@ document.getElementById("place-order-btn")?.addEventListener("click", () => {
 });
 
 // Initial render
+allCards.forEach((card) => {
+  const productId = card.dataset.productId;
+  if (productId) updateQtyDisplay(productId);
+});
 renderCartSidebar();
+applyPagination();
